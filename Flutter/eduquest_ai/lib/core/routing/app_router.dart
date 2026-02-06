@@ -18,13 +18,13 @@ class AppRouter {
       //     builder: (_) => const Scaffold(), // OnboardingScreen(),
       //   );
 
-      case Routes.authScreen:
-        return MaterialPageRoute(
-          builder: (_) => BlocProvider(
-            create: (context) => getIt<AuthCubit>(),
-            child: const AuthPage2(), //const LoginScreen(),
-          ),
-        );
+      // case Routes.authScreen:
+      //   return MaterialPageRoute(
+      //     builder: (_) => BlocProvider(
+      //       create: (context) => getIt<AuthCubit>(),
+      //       child: const AuthPage2(), //const LoginScreen(),
+      //     ),
+      //   );
 
       // case Routes.signUpScreen:
       //   return MaterialPageRoute(

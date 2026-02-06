@@ -87,7 +87,7 @@ packages:
     source: hosted
     version: "2.4.4"
   build_runner:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: build_runner
       sha256: "058fe9dce1de7d69c4b84fada934df3e0153dd000758c4d65964d0166779aa99"
@@ -446,7 +446,7 @@ packages:
     source: hosted
     version: "4.9.0"
   json_serializable:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: json_serializable
       sha256: c2fcb3920cf2b6ae6845954186420fca40bc0a8abcc84903b7801f17d7050d7c
