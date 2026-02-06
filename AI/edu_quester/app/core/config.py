@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "EduQuest AI"
     API_V1_STR: str = "/api/v1"
     
+    # Add this field
+    ENVIRONMENT: str = "dev"  # Default to local/dev
+    
     # CORS
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
 
@@ -36,3 +39,4 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
 
 settings = Settings()
+
