@@ -6,12 +6,14 @@ from app.core.enums import LogEvents
 class Settings(BaseSettings):
     PROJECT_NAME: str = "EduQuest AI"
     API_V1_STR: str = "/api/v1"
+    PORT: int = 8001
     
     # Add this field
     ENVIRONMENT: str = "dev"  # Default to local/dev
+
     
     # CORS
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+    BACKEND_CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = []
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
@@ -26,7 +28,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "SECRET_KEY_CHANGEME"
     
     # Database
-    MONGODB_URL: str = "mongodb://root:example@localhost:27017"
+    MONGODB_URL: str = "mongodb://localhost:27017"
     DATABASE_NAME: str = "eduquest"
     
     # Redis

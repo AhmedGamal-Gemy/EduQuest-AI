@@ -4,6 +4,9 @@ UV ?= uv
 install:
 	$(UV) sync
 
+build:
+	docker-compose build
+
 up:
 	docker-compose up -d
 
@@ -15,7 +18,7 @@ lint:
 	$(UV) run ruff format .
 
 test:
-	$(UV) run pytest
+	$(UV) run pytest -v -s
 
 run:
 	$(UV) run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -25,3 +28,8 @@ run:
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
+
+.PHONY: docs
+docs:
+	$(UV) run python scripts/export_openapi.py
+	npx @redocly/cli build-docs openapi.json --output api_docs.html
