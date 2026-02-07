@@ -1,0 +1,7 @@
+{
+    "pathParamsToVariable": true,
+    "folderStrategy": "Tags",
+    "requestParametersResolution": "Schema",
+    "optimizeConversion": true,
+    "stack": true
+}

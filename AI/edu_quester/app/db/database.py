@@ -3,13 +3,14 @@ from beanie import init_beanie
 from fastapi_limiter import FastAPILimiter
 import redis.asyncio as redis
 from app.core.config import settings
-from app.db.models import User
+from app.db.models import User, Course
 from edu_quester.shared.logger import logger
 
 async def init_db():
     try:
-        # Use standard PyMongo Async Client
-        client = AsyncMongoClient(settings.MONGODB_URL)
+        # Use PyMongo Async Client as requested by user
+        print(f"[DEBUG] init_db using URL: {settings.MONGODB_URL}")
+        client = AsyncMongoClient(settings.MONGODB_URL, uuidRepresentation="standard")
         
         # Verify connection (ping is standard way to check in pymongo)
         await client.admin.command('ping')
@@ -19,9 +20,10 @@ async def init_db():
             database=client[settings.DATABASE_NAME],
             document_models=[
                 User,
+                Course,
             ],
         )
-        logger.bind(author="database").info("Beanie initialized with PyMongo Async")
+        logger.bind(author="database").info("Beanie initialized with PyMongo Async Client")
     except Exception as e:
         logger.bind(author="database").error(f"MongoDB Connection Error: {e}")
         raise e

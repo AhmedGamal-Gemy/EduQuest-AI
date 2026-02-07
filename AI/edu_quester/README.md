@@ -28,10 +28,11 @@ EduQuest AI acts as the central intelligence hub for the EduQuest platform. It p
 
 ## ✨ Key Features
 - **Instant Productivity**: Registration returns a JWT token immediately—no separate login step required.
+- **Educational CRUD**: Full lifecycle management for **Courses** (instructors only) and **Students** (integrated via `fastapi-users`).
 - **Autonomous Agents**: Built-in support for Multi-Agent systems using Google ADK.
+- **Developer-First Tooling**: One-command setup using `uv` and `make`, plus automated **OpenAPI & Postman** collection exports.
 - **Advanced Security**: Integrated `fastapi-users` with JWT strategies and Redis-backed rate limiting.
-- **Enterprise Logging**: Unified structured logging using `Loguru` and `Structlog` for deep observability.
-- **Developer-First Tooling**: One-command setup using `uv` and `make`.
+- **Enterprise Logging**: Unified structured logging for deep observability.
 
 ---
 
@@ -85,7 +86,7 @@ The project follows a modular core architecture:
    ```bash
    make run
    ```
-   *Dashboard available at: http://localhost:8000/docs*
+   *Dashboard available at: http://localhost:8001/docs*
 
 ---
 

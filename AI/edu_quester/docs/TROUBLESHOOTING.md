@@ -70,14 +70,29 @@ class User(BeanieBaseUser, Document):
     id: UUID = Field(default_factory=uuid4)
 ```
 
-## 5. MongoDB Driver Deprecation (Motor vs PyMongo)
+## 5. MongoDB Driver Choice (Motor vs PyMongo)
 
 **Issue:**
-We initially used `motor.motor_asyncio`, but `Motor` is deprecated in favor of the native async support in `pymongo` (v4.9+).
+We initially attempted to use the native `pymongo.AsyncMongoClient` (introduced in PyMongo 4.9+). 
+
+**Explanation:**
+While PyMongo now supports async, Beanie's integration with it is still evolving. We encountered intermittent connection and authentication issues using the direct PyMongo async client.
 
 **Resolution:**
-We refactored `app/db/database.py` to strictly use `pymongo.AsyncMongoClient`.
-- Replaced `AsyncIOMotorClient` with `AsyncMongoClient`.
+Reverted to `motor.motor_asyncio.AsyncIOMotorClient`, which is the industry standard and proven companion for Beanie.
+
+...
+
+## 14. MongoDB Authentication Failure (Docker/WSL2)
+
+**Issue:**
+`AuthenticationFailed` error when connecting from host to MongoDB container, despite correct credentials.
+
+**Explanation:**
+This is likely due to the SASL handshake failing over the virtual network bridge (Docker/WSL2). The same credentials worked fine from within the container network but were rejected from the host.
+
+**Resolution:**
+Disabled MongoDB authentication for the local development environment in `docker-compose.yml` and settings. This unblocks development and testing without compromising project security (as production remains authenticated).
 
 ## 6. Pydantic V1 Validator Warning
 
@@ -165,3 +180,34 @@ Newer versions of `pytest-asyncio` have renamed the argument to be more explicit
 
 **Resolution:**
 Updated `@pytest.mark.asyncio(scope="module")` to `@pytest.mark.asyncio(loop_scope="module")`.
+## 15. Port 8001 (formerly 8000) Address Already in Use (Errno 98) - WSL2/Windows
+
+**Issue:**
+`uv run uvicorn` fails with `ERROR: [Errno 98] Address already in use`, but `lsof` or `ss` inside WSL2 show no active process.
+
+**Explanation:**
+A process on the Windows host is likely holding the port. WSL2 shares the network stack with Windows, so host-level listeners block WSL2 listeners on the same port.
+- **Critical Note**: If `tasklist.exe` indicates the process is `svchost.exe`, it is a Windows System Service. Attempting to kill it will result in "Access is denied" and could destabilize Windows.
+
+**Resolution:**
+1. Identify the Windows PID: `netstat.exe -ano | grep :8001`
+2. Identify the process: `tasklist.exe /FI "PID eq <PID>"`
+3. If it's a user process, kill it: `taskkill.exe /F /PID <PID>`
+4. **If it's `svchost.exe` or another system service**: Do not kill it. Instead, ensure you are using a non-conflicting port (e.g., we moved from `8000` to `8001`).
+
+## 16. WSL2 Uninterruptible Sleep ('D' state) hang
+
+**Issue:**
+The `uvicorn` (or other) processes become completely unresponsive. Requests time out, and `pkill -9` or `kill -9` have no effect. Running `ps aux` shows the process state as `D`.
+
+**Explanation:**
+This is typically caused by I/O contention when the project is stored on a Windows-mounted drive (`/mnt/c/...`). 
+- **OneDrive Sync**: If the folder is being synced by OneDrive, it may lock files during the sync process. If the Linux kernel (WSL2) attempts to access these locked files, it can enter a 'D' state (waiting for disk I/O) that cannot be interrupted by signals.
+
+**Resolution:**
+1. **Force Restart WSL**: Linux cannot recover the process while the I/O is blocked. In Windows PowerShell:
+   ```powershell
+   wsl --shutdown
+   ```
+2. **Move to Native Linux FS**: Storing projects in the native Linux filesystem (e.g., `/home/user/project`) instead of the Windows mount point avoids 99% of these I/O-related hangs and delivers significantly better performance.
+3. **Disable OneDrive Sync**: Temporarily pause or disable OneDrive for the project folder.
