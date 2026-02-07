@@ -1,3 +1,4 @@
+import 'package:eduquest_ai/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class AppStyles {
@@ -6,6 +7,19 @@ class AppStyles {
     fontWeight: FontWeightHelper.bold,
     color: Colors.black,
   );
+
+  static BoxDecoration bgDecoration = BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: AppColors.bgGradient,
+    ),
+  );
+
+  static lightnessShadow(context) => BoxShadow(
+        color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.4),
+        blurRadius: 20,
+      );
 }
 
 class FontWeightHelper {

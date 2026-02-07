@@ -1,4 +1,7 @@
 import 'dart:ui';
+import 'package:eduquest_ai/core/helper/shared_pref_helper.dart';
+import 'package:eduquest_ai/core/networking/api_constants.dart';
+import 'package:eduquest_ai/core/routing/routes.dart';
 import 'package:flutter/material.dart';
 
 enum UserRole { instructor, student }
@@ -79,7 +82,21 @@ class _ChooseRolePageState extends State<ChooseRolePage> {
                 const Spacer(),
                 _ContinueButton(
                   enabled: selectedRole != null,
-                  onPressed: selectedRole == null ? null : () {},
+                  onPressed: selectedRole == null
+                      ? null
+                      : () async {
+                          //! SaveToken
+                          SharedPrefHelper.setData(SharedPrefKeys.userRole, selectedRole!.name);
+                          String? role = await SharedPrefHelper.getString(SharedPrefKeys.userRole);
+                          debugPrint("UserRole: $role");
+                          if (role == UserRole.instructor.name) {
+                            if (!mounted) {}
+                            Navigator.pushReplacementNamed(context, Routes.instructorNavbar);
+                          } else {
+                            if (!mounted) {}
+                            Navigator.pushReplacementNamed(context, Routes.instructorNavbar);
+                          }
+                        },
                 ),
                 const SizedBox(height: 20),
                 Center(
@@ -138,7 +155,7 @@ class _RoleCard extends StatelessWidget {
             duration: const Duration(milliseconds: 250),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: selected ? color.withOpacity(0.18) : Colors.white.withOpacity(0.06),
+              color: selected ? color.withValues(alpha: 0.18) : Colors.white.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: selected ? color : Colors.white10,
@@ -151,7 +168,7 @@ class _RoleCard extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
+                    color: color.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(icon, color: color, size: 28),

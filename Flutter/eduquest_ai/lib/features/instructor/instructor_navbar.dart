@@ -17,12 +17,6 @@ class InstructorNavbar extends StatelessWidget {
               title: const Text('Instructor Navbar'),
             ),
             body: Container(),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () {
-                context.read<AuthCubit>().emitTodoStates();
-              },
-              child: const Text("GET"),
-            ),
           );
         },
       ),

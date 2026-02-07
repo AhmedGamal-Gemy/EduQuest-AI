@@ -1,11 +1,11 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:eduquest_ai/core/networking/api_error_model.dart';
-import 'api_constants.dart';
+import 'api_error_model.dart';
 
 /// ===============================
-/// Data Source (Enum)
+/// Enum for logical DataSource errors
 /// ===============================
-enum DataSource {
+enum DataSourceEnum {
   noContent,
   badRequest,
   unauthorized,
@@ -47,123 +47,66 @@ class ResponseCode {
   static const int defaultError = -7;
 }
 
-class ApiErrors {
-  static const String badRequestError = "badRequestError";
-  static const String noContent = "noContent";
-  static const String forbiddenError = "forbiddenError";
-  static const String unauthorizedError = "unauthorizedError";
-  static const String notFoundError = "notFoundError";
-  static const String conflictError = "conflictError";
-  static const String internalServerError = "internalServerError";
-  static const String unknownError = "unknownError";
-  static const String timeoutError = "timeoutError";
-  static const String defaultError = "defaultError";
-  static const String cacheError = "cacheError";
-  static const String noInternetError = "noInternetError";
-  static const String loadingMessage = "loading_message";
-  static const String retryAgainMessage = "retry_again_message";
-  static const String ok = "Ok";
-}
-
 /// ===============================
-/// Response Messages
+/// Error Messages
 /// ===============================
 class ResponseMessage {
   ResponseMessage._();
 
-  static const String noContent = ApiErrors.noContent;
-  static const String badRequest = ApiErrors.badRequestError;
-  static const String unauthorized = ApiErrors.unauthorizedError;
-  static const String forbidden = ApiErrors.forbiddenError;
-  static const String notFound = ApiErrors.notFoundError;
-  static const String internalServerError = ApiErrors.internalServerError;
+  static const String noContent = "No content available";
+  static const String badRequest = "Bad request";
+  static const String unauthorized = "Unauthorized request";
+  static const String forbidden = "Forbidden request";
+  static const String notFound = "Resource not found";
+  static const String internalServerError = "Internal server error";
 
-  static const String connectTimeout = ApiErrors.timeoutError;
-  static const String cancel = ApiErrors.defaultError;
-  static const String receiveTimeout = ApiErrors.timeoutError;
-  static const String sendTimeout = ApiErrors.timeoutError;
-  static const String cacheError = ApiErrors.cacheError;
-  static const String noInternetConnection = ApiErrors.noInternetError;
-  static const String defaultError = ApiErrors.defaultError;
+  static const String connectTimeout = "Connection timeout";
+  static const String sendTimeout = "Send timeout";
+  static const String receiveTimeout = "Receive timeout";
+  static const String cancel = "Request cancelled";
+  static const String cacheError = "Cache error";
+  static const String noInternetConnection = "No internet connection";
+  static const String defaultError = "Something went wrong";
 }
 
 /// ===============================
-/// DataSource Extension
+/// DataSource Extension to convert to ApiErrorModel
 /// ===============================
-extension DataSourceExtension on DataSource {
+extension DataSourceExtension on DataSourceEnum {
   ApiErrorModel get failure {
     switch (this) {
-      case DataSource.noContent:
-        return ApiErrorModel(
-          code: ResponseCode.noContent,
-          message: ResponseMessage.noContent,
-        );
-      case DataSource.badRequest:
-        return ApiErrorModel(
-          code: ResponseCode.badRequest,
-          message: ResponseMessage.badRequest,
-        );
-      case DataSource.unauthorized:
-        return ApiErrorModel(
-          code: ResponseCode.unauthorized,
-          message: ResponseMessage.unauthorized,
-        );
-      case DataSource.forbidden:
-        return ApiErrorModel(
-          code: ResponseCode.forbidden,
-          message: ResponseMessage.forbidden,
-        );
-      case DataSource.notFound:
-        return ApiErrorModel(
-          code: ResponseCode.notFound,
-          message: ResponseMessage.notFound,
-        );
-      case DataSource.internalServerError:
-        return ApiErrorModel(
-          code: ResponseCode.internalServerError,
-          message: ResponseMessage.internalServerError,
-        );
-      case DataSource.connectTimeout:
-        return ApiErrorModel(
-          code: ResponseCode.connectTimeout,
-          message: ResponseMessage.connectTimeout,
-        );
-      case DataSource.cancel:
-        return ApiErrorModel(
-          code: ResponseCode.cancel,
-          message: ResponseMessage.cancel,
-        );
-      case DataSource.receiveTimeout:
-        return ApiErrorModel(
-          code: ResponseCode.receiveTimeout,
-          message: ResponseMessage.receiveTimeout,
-        );
-      case DataSource.sendTimeout:
-        return ApiErrorModel(
-          code: ResponseCode.sendTimeout,
-          message: ResponseMessage.sendTimeout,
-        );
-      case DataSource.cacheError:
-        return ApiErrorModel(
-          code: ResponseCode.cacheError,
-          message: ResponseMessage.cacheError,
-        );
-      case DataSource.noInternetConnection:
-        return ApiErrorModel(
-          code: ResponseCode.noInternetConnection,
-          message: ResponseMessage.noInternetConnection,
-        );
-      case DataSource.defaultError:
-        return ApiErrorModel(
-          code: ResponseCode.defaultError,
-          message: ResponseMessage.defaultError,
-        );
+      case DataSourceEnum.noContent:
+        return ApiErrorModel(code: ResponseCode.noContent, message: ResponseMessage.noContent);
+      case DataSourceEnum.badRequest:
+        return ApiErrorModel(code: ResponseCode.badRequest, message: ResponseMessage.badRequest);
+      case DataSourceEnum.unauthorized:
+        return ApiErrorModel(code: ResponseCode.unauthorized, message: ResponseMessage.unauthorized);
+      case DataSourceEnum.forbidden:
+        return ApiErrorModel(code: ResponseCode.forbidden, message: ResponseMessage.forbidden);
+      case DataSourceEnum.notFound:
+        return ApiErrorModel(code: ResponseCode.notFound, message: ResponseMessage.notFound);
+      case DataSourceEnum.internalServerError:
+        return ApiErrorModel(code: ResponseCode.internalServerError, message: ResponseMessage.internalServerError);
+      case DataSourceEnum.connectTimeout:
+        return ApiErrorModel(code: ResponseCode.connectTimeout, message: ResponseMessage.connectTimeout);
+      case DataSourceEnum.sendTimeout:
+        return ApiErrorModel(code: ResponseCode.sendTimeout, message: ResponseMessage.sendTimeout);
+      case DataSourceEnum.receiveTimeout:
+        return ApiErrorModel(code: ResponseCode.receiveTimeout, message: ResponseMessage.receiveTimeout);
+      case DataSourceEnum.cancel:
+        return ApiErrorModel(code: ResponseCode.cancel, message: ResponseMessage.cancel);
+      case DataSourceEnum.cacheError:
+        return ApiErrorModel(code: ResponseCode.cacheError, message: ResponseMessage.cacheError);
+      case DataSourceEnum.noInternetConnection:
+        return ApiErrorModel(code: ResponseCode.noInternetConnection, message: ResponseMessage.noInternetConnection);
+      case DataSourceEnum.defaultError:
+        return ApiErrorModel(code: ResponseCode.defaultError, message: ResponseMessage.defaultError);
     }
   }
 }
 
 /// ===============================
-/// Error Handler
+/// Dio Error Handler
 /// ===============================
 class ErrorHandler implements Exception {
   final ApiErrorModel error;
@@ -172,35 +115,40 @@ class ErrorHandler implements Exception {
 }
 
 /// ===============================
-/// Dio Error Mapper
+/// Map DioException to ApiErrorModel
 /// ===============================
 ApiErrorModel _handleError(dynamic error) {
   if (error is DioException) {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
-        return DataSource.connectTimeout.failure;
+        return DataSourceEnum.connectTimeout.failure;
       case DioExceptionType.sendTimeout:
-        return DataSource.sendTimeout.failure;
+        return DataSourceEnum.sendTimeout.failure;
       case DioExceptionType.receiveTimeout:
-        return DataSource.receiveTimeout.failure;
+        return DataSourceEnum.receiveTimeout.failure;
       case DioExceptionType.cancel:
-        return DataSource.cancel.failure;
-      case DioExceptionType.badResponse:
+        return DataSourceEnum.cancel.failure;
       case DioExceptionType.unknown:
-        return error.response?.data != null ? ApiErrorModel.fromJson(error.response!.data) : DataSource.defaultError.failure;
-      default:
-        return DataSource.defaultError.failure;
+        if (error.error != null && error.error is SocketException) {
+          return DataSourceEnum.noInternetConnection.failure;
+        }
+        return error.response?.data != null ? ApiErrorModel.fromJson(error.response!.data) : DataSourceEnum.defaultError.failure;
+      case DioExceptionType.badResponse:
+        return error.response?.data != null ? ApiErrorModel.fromJson(error.response!.data) : DataSourceEnum.defaultError.failure;
+      case DioExceptionType.badCertificate:
+        return ApiErrorModel(
+          code: -8,
+          message: "Bad SSL Certificate. Could not verify server.",
+        );
+
+      case DioExceptionType.connectionError:
+        return ApiErrorModel(
+          code: -9,
+          message: "Failed to connect to the server. Check your network.",
+        );
     }
   }
-  return DataSource.defaultError.failure;
-}
 
-/// ===============================
-/// API Internal Status
-/// ===============================
-class ApiInternalStatus {
-  ApiInternalStatus._();
-
-  static const int success = 0;
-  static const int failure = 1;
+  // أي error آخر
+  return DataSourceEnum.defaultError.failure;
 }
