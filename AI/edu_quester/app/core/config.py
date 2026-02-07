@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     # Add this field
     ENVIRONMENT: str = "dev"  # Default to local/dev
 
+    
     # CORS
     BACKEND_CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = []
 
@@ -40,3 +41,4 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
 
 settings = Settings()
+
