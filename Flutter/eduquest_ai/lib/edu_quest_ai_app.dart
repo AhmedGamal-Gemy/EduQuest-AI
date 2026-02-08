@@ -1,20 +1,22 @@
-// import 'package:eduquest_ai/features/auth/ui/auth_page.dart';
-import 'package:eduquest_ai/features/auth/ui/choose_role_page.dart';
+import 'package:eduquest_ai/core/helper/constants.dart';
+import 'package:eduquest_ai/core/helper/shared_pref_helper.dart';
+import 'package:eduquest_ai/core/networking/api_constants.dart';
+import 'package:eduquest_ai/core/routing/app_router.dart';
+import 'package:eduquest_ai/core/routing/routes.dart';
+import 'package:eduquest_ai/core/theme/app_themes.dart';
 import 'package:flutter/material.dart';
 
 class EduQuestAIApp extends StatelessWidget {
   const EduQuestAIApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: ChooseRolePage(),
+      title: Constants.appName,
+      debugShowCheckedModeBanner: false,
+      theme: AppThemes.darkTheme,
+      onGenerateRoute: AppRouter.generateRoute,
+      initialRoute: Routes.splashScreen,
     );
   }
 }

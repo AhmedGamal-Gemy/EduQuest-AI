@@ -15,4 +15,9 @@ class AppColors {
   static const Color purple = Color(0xFF8B5CF6);
   static const Color cyan = Color(0xFF06B5D2);
   static const Color tealDark = Color(0xFF0C3C51);
+
+  static List<Color> bgGradient = [
+    Color(0xFF0B1220),
+    Color(0xFF111A2E),
+  ];
 }
