@@ -21,6 +21,7 @@ mixin _$AuthState {
     required TResult Function() authInitial,
     required TResult Function() authLoading,
     required TResult Function(AuthType authType) authToggleAuthType,
+    required TResult Function(UserRole selectedRole) authSelectedRole,
     required TResult Function(String token, String role) authAuthenticated,
     required TResult Function(String? error) authUnauthenticated,
   }) =>
@@ -30,6 +31,7 @@ mixin _$AuthState {
     TResult? Function()? authInitial,
     TResult? Function()? authLoading,
     TResult? Function(AuthType authType)? authToggleAuthType,
+    TResult? Function(UserRole selectedRole)? authSelectedRole,
     TResult? Function(String token, String role)? authAuthenticated,
     TResult? Function(String? error)? authUnauthenticated,
   }) =>
@@ -39,6 +41,7 @@ mixin _$AuthState {
     TResult Function()? authInitial,
     TResult Function()? authLoading,
     TResult Function(AuthType authType)? authToggleAuthType,
+    TResult Function(UserRole selectedRole)? authSelectedRole,
     TResult Function(String token, String role)? authAuthenticated,
     TResult Function(String? error)? authUnauthenticated,
     required TResult orElse(),
@@ -49,6 +52,7 @@ mixin _$AuthState {
     required TResult Function(AuthInitial value) authInitial,
     required TResult Function(AuthLoading value) authLoading,
     required TResult Function(AuthToggleAuthType value) authToggleAuthType,
+    required TResult Function(AuthSelectedRole value) authSelectedRole,
     required TResult Function(AuthAuthenticated value) authAuthenticated,
     required TResult Function(AuthUnauthenticated value) authUnauthenticated,
   }) =>
@@ -58,6 +62,7 @@ mixin _$AuthState {
     TResult? Function(AuthInitial value)? authInitial,
     TResult? Function(AuthLoading value)? authLoading,
     TResult? Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult? Function(AuthSelectedRole value)? authSelectedRole,
     TResult? Function(AuthAuthenticated value)? authAuthenticated,
     TResult? Function(AuthUnauthenticated value)? authUnauthenticated,
   }) =>
@@ -67,6 +72,7 @@ mixin _$AuthState {
     TResult Function(AuthInitial value)? authInitial,
     TResult Function(AuthLoading value)? authLoading,
     TResult Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult Function(AuthSelectedRole value)? authSelectedRole,
     TResult Function(AuthAuthenticated value)? authAuthenticated,
     TResult Function(AuthUnauthenticated value)? authUnauthenticated,
     required TResult orElse(),
@@ -138,6 +144,7 @@ class _$AuthInitialImpl implements AuthInitial {
     required TResult Function() authInitial,
     required TResult Function() authLoading,
     required TResult Function(AuthType authType) authToggleAuthType,
+    required TResult Function(UserRole selectedRole) authSelectedRole,
     required TResult Function(String token, String role) authAuthenticated,
     required TResult Function(String? error) authUnauthenticated,
   }) {
@@ -150,6 +157,7 @@ class _$AuthInitialImpl implements AuthInitial {
     TResult? Function()? authInitial,
     TResult? Function()? authLoading,
     TResult? Function(AuthType authType)? authToggleAuthType,
+    TResult? Function(UserRole selectedRole)? authSelectedRole,
     TResult? Function(String token, String role)? authAuthenticated,
     TResult? Function(String? error)? authUnauthenticated,
   }) {
@@ -162,6 +170,7 @@ class _$AuthInitialImpl implements AuthInitial {
     TResult Function()? authInitial,
     TResult Function()? authLoading,
     TResult Function(AuthType authType)? authToggleAuthType,
+    TResult Function(UserRole selectedRole)? authSelectedRole,
     TResult Function(String token, String role)? authAuthenticated,
     TResult Function(String? error)? authUnauthenticated,
     required TResult orElse(),
@@ -178,6 +187,7 @@ class _$AuthInitialImpl implements AuthInitial {
     required TResult Function(AuthInitial value) authInitial,
     required TResult Function(AuthLoading value) authLoading,
     required TResult Function(AuthToggleAuthType value) authToggleAuthType,
+    required TResult Function(AuthSelectedRole value) authSelectedRole,
     required TResult Function(AuthAuthenticated value) authAuthenticated,
     required TResult Function(AuthUnauthenticated value) authUnauthenticated,
   }) {
@@ -190,6 +200,7 @@ class _$AuthInitialImpl implements AuthInitial {
     TResult? Function(AuthInitial value)? authInitial,
     TResult? Function(AuthLoading value)? authLoading,
     TResult? Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult? Function(AuthSelectedRole value)? authSelectedRole,
     TResult? Function(AuthAuthenticated value)? authAuthenticated,
     TResult? Function(AuthUnauthenticated value)? authUnauthenticated,
   }) {
@@ -202,6 +213,7 @@ class _$AuthInitialImpl implements AuthInitial {
     TResult Function(AuthInitial value)? authInitial,
     TResult Function(AuthLoading value)? authLoading,
     TResult Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult Function(AuthSelectedRole value)? authSelectedRole,
     TResult Function(AuthAuthenticated value)? authAuthenticated,
     TResult Function(AuthUnauthenticated value)? authUnauthenticated,
     required TResult orElse(),
@@ -261,6 +273,7 @@ class _$AuthLoadingImpl implements AuthLoading {
     required TResult Function() authInitial,
     required TResult Function() authLoading,
     required TResult Function(AuthType authType) authToggleAuthType,
+    required TResult Function(UserRole selectedRole) authSelectedRole,
     required TResult Function(String token, String role) authAuthenticated,
     required TResult Function(String? error) authUnauthenticated,
   }) {
@@ -273,6 +286,7 @@ class _$AuthLoadingImpl implements AuthLoading {
     TResult? Function()? authInitial,
     TResult? Function()? authLoading,
     TResult? Function(AuthType authType)? authToggleAuthType,
+    TResult? Function(UserRole selectedRole)? authSelectedRole,
     TResult? Function(String token, String role)? authAuthenticated,
     TResult? Function(String? error)? authUnauthenticated,
   }) {
@@ -285,6 +299,7 @@ class _$AuthLoadingImpl implements AuthLoading {
     TResult Function()? authInitial,
     TResult Function()? authLoading,
     TResult Function(AuthType authType)? authToggleAuthType,
+    TResult Function(UserRole selectedRole)? authSelectedRole,
     TResult Function(String token, String role)? authAuthenticated,
     TResult Function(String? error)? authUnauthenticated,
     required TResult orElse(),
@@ -301,6 +316,7 @@ class _$AuthLoadingImpl implements AuthLoading {
     required TResult Function(AuthInitial value) authInitial,
     required TResult Function(AuthLoading value) authLoading,
     required TResult Function(AuthToggleAuthType value) authToggleAuthType,
+    required TResult Function(AuthSelectedRole value) authSelectedRole,
     required TResult Function(AuthAuthenticated value) authAuthenticated,
     required TResult Function(AuthUnauthenticated value) authUnauthenticated,
   }) {
@@ -313,6 +329,7 @@ class _$AuthLoadingImpl implements AuthLoading {
     TResult? Function(AuthInitial value)? authInitial,
     TResult? Function(AuthLoading value)? authLoading,
     TResult? Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult? Function(AuthSelectedRole value)? authSelectedRole,
     TResult? Function(AuthAuthenticated value)? authAuthenticated,
     TResult? Function(AuthUnauthenticated value)? authUnauthenticated,
   }) {
@@ -325,6 +342,7 @@ class _$AuthLoadingImpl implements AuthLoading {
     TResult Function(AuthInitial value)? authInitial,
     TResult Function(AuthLoading value)? authLoading,
     TResult Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult Function(AuthSelectedRole value)? authSelectedRole,
     TResult Function(AuthAuthenticated value)? authAuthenticated,
     TResult Function(AuthUnauthenticated value)? authUnauthenticated,
     required TResult orElse(),
@@ -413,6 +431,7 @@ class _$AuthToggleAuthTypeImpl implements AuthToggleAuthType {
     required TResult Function() authInitial,
     required TResult Function() authLoading,
     required TResult Function(AuthType authType) authToggleAuthType,
+    required TResult Function(UserRole selectedRole) authSelectedRole,
     required TResult Function(String token, String role) authAuthenticated,
     required TResult Function(String? error) authUnauthenticated,
   }) {
@@ -425,6 +444,7 @@ class _$AuthToggleAuthTypeImpl implements AuthToggleAuthType {
     TResult? Function()? authInitial,
     TResult? Function()? authLoading,
     TResult? Function(AuthType authType)? authToggleAuthType,
+    TResult? Function(UserRole selectedRole)? authSelectedRole,
     TResult? Function(String token, String role)? authAuthenticated,
     TResult? Function(String? error)? authUnauthenticated,
   }) {
@@ -437,6 +457,7 @@ class _$AuthToggleAuthTypeImpl implements AuthToggleAuthType {
     TResult Function()? authInitial,
     TResult Function()? authLoading,
     TResult Function(AuthType authType)? authToggleAuthType,
+    TResult Function(UserRole selectedRole)? authSelectedRole,
     TResult Function(String token, String role)? authAuthenticated,
     TResult Function(String? error)? authUnauthenticated,
     required TResult orElse(),
@@ -453,6 +474,7 @@ class _$AuthToggleAuthTypeImpl implements AuthToggleAuthType {
     required TResult Function(AuthInitial value) authInitial,
     required TResult Function(AuthLoading value) authLoading,
     required TResult Function(AuthToggleAuthType value) authToggleAuthType,
+    required TResult Function(AuthSelectedRole value) authSelectedRole,
     required TResult Function(AuthAuthenticated value) authAuthenticated,
     required TResult Function(AuthUnauthenticated value) authUnauthenticated,
   }) {
@@ -465,6 +487,7 @@ class _$AuthToggleAuthTypeImpl implements AuthToggleAuthType {
     TResult? Function(AuthInitial value)? authInitial,
     TResult? Function(AuthLoading value)? authLoading,
     TResult? Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult? Function(AuthSelectedRole value)? authSelectedRole,
     TResult? Function(AuthAuthenticated value)? authAuthenticated,
     TResult? Function(AuthUnauthenticated value)? authUnauthenticated,
   }) {
@@ -477,6 +500,7 @@ class _$AuthToggleAuthTypeImpl implements AuthToggleAuthType {
     TResult Function(AuthInitial value)? authInitial,
     TResult Function(AuthLoading value)? authLoading,
     TResult Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult Function(AuthSelectedRole value)? authSelectedRole,
     TResult Function(AuthAuthenticated value)? authAuthenticated,
     TResult Function(AuthUnauthenticated value)? authUnauthenticated,
     required TResult orElse(),
@@ -498,6 +522,173 @@ abstract class AuthToggleAuthType implements AuthState {
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$AuthToggleAuthTypeImplCopyWith<_$AuthToggleAuthTypeImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$AuthSelectedRoleImplCopyWith<$Res> {
+  factory _$$AuthSelectedRoleImplCopyWith(_$AuthSelectedRoleImpl value,
+          $Res Function(_$AuthSelectedRoleImpl) then) =
+      __$$AuthSelectedRoleImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({UserRole selectedRole});
+}
+
+/// @nodoc
+class __$$AuthSelectedRoleImplCopyWithImpl<$Res>
+    extends _$AuthStateCopyWithImpl<$Res, _$AuthSelectedRoleImpl>
+    implements _$$AuthSelectedRoleImplCopyWith<$Res> {
+  __$$AuthSelectedRoleImplCopyWithImpl(_$AuthSelectedRoleImpl _value,
+      $Res Function(_$AuthSelectedRoleImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? selectedRole = null,
+  }) {
+    return _then(_$AuthSelectedRoleImpl(
+      selectedRole: null == selectedRole
+          ? _value.selectedRole
+          : selectedRole // ignore: cast_nullable_to_non_nullable
+              as UserRole,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$AuthSelectedRoleImpl implements AuthSelectedRole {
+  const _$AuthSelectedRoleImpl({required this.selectedRole});
+
+  @override
+  final UserRole selectedRole;
+
+  @override
+  String toString() {
+    return 'AuthState.authSelectedRole(selectedRole: $selectedRole)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$AuthSelectedRoleImpl &&
+            (identical(other.selectedRole, selectedRole) ||
+                other.selectedRole == selectedRole));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, selectedRole);
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$AuthSelectedRoleImplCopyWith<_$AuthSelectedRoleImpl> get copyWith =>
+      __$$AuthSelectedRoleImplCopyWithImpl<_$AuthSelectedRoleImpl>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() authInitial,
+    required TResult Function() authLoading,
+    required TResult Function(AuthType authType) authToggleAuthType,
+    required TResult Function(UserRole selectedRole) authSelectedRole,
+    required TResult Function(String token, String role) authAuthenticated,
+    required TResult Function(String? error) authUnauthenticated,
+  }) {
+    return authSelectedRole(selectedRole);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? authInitial,
+    TResult? Function()? authLoading,
+    TResult? Function(AuthType authType)? authToggleAuthType,
+    TResult? Function(UserRole selectedRole)? authSelectedRole,
+    TResult? Function(String token, String role)? authAuthenticated,
+    TResult? Function(String? error)? authUnauthenticated,
+  }) {
+    return authSelectedRole?.call(selectedRole);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? authInitial,
+    TResult Function()? authLoading,
+    TResult Function(AuthType authType)? authToggleAuthType,
+    TResult Function(UserRole selectedRole)? authSelectedRole,
+    TResult Function(String token, String role)? authAuthenticated,
+    TResult Function(String? error)? authUnauthenticated,
+    required TResult orElse(),
+  }) {
+    if (authSelectedRole != null) {
+      return authSelectedRole(selectedRole);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(AuthInitial value) authInitial,
+    required TResult Function(AuthLoading value) authLoading,
+    required TResult Function(AuthToggleAuthType value) authToggleAuthType,
+    required TResult Function(AuthSelectedRole value) authSelectedRole,
+    required TResult Function(AuthAuthenticated value) authAuthenticated,
+    required TResult Function(AuthUnauthenticated value) authUnauthenticated,
+  }) {
+    return authSelectedRole(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(AuthInitial value)? authInitial,
+    TResult? Function(AuthLoading value)? authLoading,
+    TResult? Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult? Function(AuthSelectedRole value)? authSelectedRole,
+    TResult? Function(AuthAuthenticated value)? authAuthenticated,
+    TResult? Function(AuthUnauthenticated value)? authUnauthenticated,
+  }) {
+    return authSelectedRole?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(AuthInitial value)? authInitial,
+    TResult Function(AuthLoading value)? authLoading,
+    TResult Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult Function(AuthSelectedRole value)? authSelectedRole,
+    TResult Function(AuthAuthenticated value)? authAuthenticated,
+    TResult Function(AuthUnauthenticated value)? authUnauthenticated,
+    required TResult orElse(),
+  }) {
+    if (authSelectedRole != null) {
+      return authSelectedRole(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class AuthSelectedRole implements AuthState {
+  const factory AuthSelectedRole({required final UserRole selectedRole}) =
+      _$AuthSelectedRoleImpl;
+
+  UserRole get selectedRole;
+
+  /// Create a copy of AuthState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$AuthSelectedRoleImplCopyWith<_$AuthSelectedRoleImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -581,6 +772,7 @@ class _$AuthAuthenticatedImpl implements AuthAuthenticated {
     required TResult Function() authInitial,
     required TResult Function() authLoading,
     required TResult Function(AuthType authType) authToggleAuthType,
+    required TResult Function(UserRole selectedRole) authSelectedRole,
     required TResult Function(String token, String role) authAuthenticated,
     required TResult Function(String? error) authUnauthenticated,
   }) {
@@ -593,6 +785,7 @@ class _$AuthAuthenticatedImpl implements AuthAuthenticated {
     TResult? Function()? authInitial,
     TResult? Function()? authLoading,
     TResult? Function(AuthType authType)? authToggleAuthType,
+    TResult? Function(UserRole selectedRole)? authSelectedRole,
     TResult? Function(String token, String role)? authAuthenticated,
     TResult? Function(String? error)? authUnauthenticated,
   }) {
@@ -605,6 +798,7 @@ class _$AuthAuthenticatedImpl implements AuthAuthenticated {
     TResult Function()? authInitial,
     TResult Function()? authLoading,
     TResult Function(AuthType authType)? authToggleAuthType,
+    TResult Function(UserRole selectedRole)? authSelectedRole,
     TResult Function(String token, String role)? authAuthenticated,
     TResult Function(String? error)? authUnauthenticated,
     required TResult orElse(),
@@ -621,6 +815,7 @@ class _$AuthAuthenticatedImpl implements AuthAuthenticated {
     required TResult Function(AuthInitial value) authInitial,
     required TResult Function(AuthLoading value) authLoading,
     required TResult Function(AuthToggleAuthType value) authToggleAuthType,
+    required TResult Function(AuthSelectedRole value) authSelectedRole,
     required TResult Function(AuthAuthenticated value) authAuthenticated,
     required TResult Function(AuthUnauthenticated value) authUnauthenticated,
   }) {
@@ -633,6 +828,7 @@ class _$AuthAuthenticatedImpl implements AuthAuthenticated {
     TResult? Function(AuthInitial value)? authInitial,
     TResult? Function(AuthLoading value)? authLoading,
     TResult? Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult? Function(AuthSelectedRole value)? authSelectedRole,
     TResult? Function(AuthAuthenticated value)? authAuthenticated,
     TResult? Function(AuthUnauthenticated value)? authUnauthenticated,
   }) {
@@ -645,6 +841,7 @@ class _$AuthAuthenticatedImpl implements AuthAuthenticated {
     TResult Function(AuthInitial value)? authInitial,
     TResult Function(AuthLoading value)? authLoading,
     TResult Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult Function(AuthSelectedRole value)? authSelectedRole,
     TResult Function(AuthAuthenticated value)? authAuthenticated,
     TResult Function(AuthUnauthenticated value)? authUnauthenticated,
     required TResult orElse(),
@@ -743,6 +940,7 @@ class _$AuthUnauthenticatedImpl implements AuthUnauthenticated {
     required TResult Function() authInitial,
     required TResult Function() authLoading,
     required TResult Function(AuthType authType) authToggleAuthType,
+    required TResult Function(UserRole selectedRole) authSelectedRole,
     required TResult Function(String token, String role) authAuthenticated,
     required TResult Function(String? error) authUnauthenticated,
   }) {
@@ -755,6 +953,7 @@ class _$AuthUnauthenticatedImpl implements AuthUnauthenticated {
     TResult? Function()? authInitial,
     TResult? Function()? authLoading,
     TResult? Function(AuthType authType)? authToggleAuthType,
+    TResult? Function(UserRole selectedRole)? authSelectedRole,
     TResult? Function(String token, String role)? authAuthenticated,
     TResult? Function(String? error)? authUnauthenticated,
   }) {
@@ -767,6 +966,7 @@ class _$AuthUnauthenticatedImpl implements AuthUnauthenticated {
     TResult Function()? authInitial,
     TResult Function()? authLoading,
     TResult Function(AuthType authType)? authToggleAuthType,
+    TResult Function(UserRole selectedRole)? authSelectedRole,
     TResult Function(String token, String role)? authAuthenticated,
     TResult Function(String? error)? authUnauthenticated,
     required TResult orElse(),
@@ -783,6 +983,7 @@ class _$AuthUnauthenticatedImpl implements AuthUnauthenticated {
     required TResult Function(AuthInitial value) authInitial,
     required TResult Function(AuthLoading value) authLoading,
     required TResult Function(AuthToggleAuthType value) authToggleAuthType,
+    required TResult Function(AuthSelectedRole value) authSelectedRole,
     required TResult Function(AuthAuthenticated value) authAuthenticated,
     required TResult Function(AuthUnauthenticated value) authUnauthenticated,
   }) {
@@ -795,6 +996,7 @@ class _$AuthUnauthenticatedImpl implements AuthUnauthenticated {
     TResult? Function(AuthInitial value)? authInitial,
     TResult? Function(AuthLoading value)? authLoading,
     TResult? Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult? Function(AuthSelectedRole value)? authSelectedRole,
     TResult? Function(AuthAuthenticated value)? authAuthenticated,
     TResult? Function(AuthUnauthenticated value)? authUnauthenticated,
   }) {
@@ -807,6 +1009,7 @@ class _$AuthUnauthenticatedImpl implements AuthUnauthenticated {
     TResult Function(AuthInitial value)? authInitial,
     TResult Function(AuthLoading value)? authLoading,
     TResult Function(AuthToggleAuthType value)? authToggleAuthType,
+    TResult Function(AuthSelectedRole value)? authSelectedRole,
     TResult Function(AuthAuthenticated value)? authAuthenticated,
     TResult Function(AuthUnauthenticated value)? authUnauthenticated,
     required TResult orElse(),

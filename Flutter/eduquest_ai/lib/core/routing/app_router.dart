@@ -4,7 +4,7 @@ import 'package:eduquest_ai/features/auth/logic/auth_cubit.dart';
 import 'package:eduquest_ai/features/auth/ui/auth_page.dart';
 import 'package:eduquest_ai/features/auth/ui/choose_role_page.dart';
 import 'package:eduquest_ai/features/auth/ui/splash_page.dart';
-import 'package:eduquest_ai/features/instructor/instructor_navbar.dart';
+import 'package:eduquest_ai/features/instructor/ui/instructor_navbar.dart';
 import 'package:eduquest_ai/features/student/student_navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

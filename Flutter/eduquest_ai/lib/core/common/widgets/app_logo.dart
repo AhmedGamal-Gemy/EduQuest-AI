@@ -20,11 +20,14 @@ class AppLogo extends StatelessWidget {
           boxShadow: [AppStyles.lightnessShadow(context)],
         ),
         child: Center(
-          child: SvgPicture.asset(
-            "assets/icons/neurology.svg",
-            colorFilter: ColorFilter.mode(
-              Theme.of(context).colorScheme.onPrimary,
-              BlendMode.srcIn,
+          child: Transform.rotate(
+            angle: -math.pi / 4,
+            child: SvgPicture.asset(
+              "assets/icons/neurology.svg",
+              colorFilter: ColorFilter.mode(
+                Theme.of(context).colorScheme.onPrimary,
+                BlendMode.srcIn,
+              ),
             ),
           ),
         ),
