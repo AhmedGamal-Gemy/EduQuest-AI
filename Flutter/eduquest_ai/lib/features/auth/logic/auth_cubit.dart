@@ -2,6 +2,7 @@ import 'package:eduquest_ai/core/helper/constants.dart';
 import 'package:eduquest_ai/core/networking/api_constants.dart';
 import 'package:eduquest_ai/features/auth/data/models/login_request_body.dart';
 import 'package:eduquest_ai/features/auth/data/models/signup_request_body.dart';
+import 'package:eduquest_ai/features/auth/ui/choose_role_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:eduquest_ai/core/helper/shared_pref_helper.dart';
@@ -28,7 +29,6 @@ class AuthCubit extends Cubit<AuthState> {
 
   void toggleAuthType() {
     authType = authType == AuthType.signin ? AuthType.signup : AuthType.signin;
-
     formKey.currentState?.reset();
     emailController.clear();
     passwordController.clear();
@@ -36,6 +36,13 @@ class AuthCubit extends Cubit<AuthState> {
     lastNameController.clear();
 
     emit(AuthState.authToggleAuthType(authType: authType)); // Pass authType in the state
+  }
+
+  UserRole selectedRole = UserRole.instructor;
+
+  void authSelectedRole() {
+    selectedRole = selectedRole == UserRole.instructor ? UserRole.student : UserRole.instructor;
+    emit(AuthState.authSelectedRole(selectedRole: selectedRole)); // Pass authType in the state
   }
 
   Future<void> emitLoginStates() async {
@@ -46,19 +53,20 @@ class AuthCubit extends Cubit<AuthState> {
     );
 
     emit(const AuthState.authLoading());
-
     final response = await _authRepo.login(body);
 
     response.when(
       success: (authResponse) async {
-        final token = authResponse.accessToken ?? '';
-        final role = Role.instructor.name; //authResponse.role ??
-        await _saveUserToken(token);
-        emit(AuthState.authAuthenticated(token: token, role: role));
+        emit(
+          AuthState.authAuthenticated(
+            token: authResponse.accessToken,
+            role: authResponse.role,
+          ),
+        );
       },
       failure: (error) {
         emit(AuthState.authUnauthenticated(
-          error: error.error.message ?? 'Login failed',
+          error: error.error.detail ?? 'Login failed',
         ));
       },
     );
@@ -72,23 +80,27 @@ class AuthCubit extends Cubit<AuthState> {
       password: passwordController.text.trim(),
       firstName: firstNameController.text.trim(),
       lastName: lastNameController.text.trim(),
+      role: selectedRole.name.toLowerCase(),
     );
 
     emit(const AuthState.authLoading());
-
     final response = await _authRepo.signup(body);
 
     response.when(
       success: (signupResponse) async {
-        final token = signupResponse.accessToken ?? '';
-        final role = Role.instructor.name; // signupResponse.role ??
-        await _saveUserToken(token);
-        emit(AuthState.authAuthenticated(token: token, role: role));
+        emit(
+          AuthState.authAuthenticated(
+            token: signupResponse.accessToken,
+            role: signupResponse.role,
+          ),
+        );
       },
       failure: (error) {
-        emit(AuthState.authUnauthenticated(
-          error: error.error.message ?? 'Signup failed',
-        ));
+        emit(
+          AuthState.authUnauthenticated(
+            error: error.error.detail ?? 'Signup failed',
+          ),
+        );
       },
     );
   }
@@ -96,11 +108,6 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> logout() async {
     await SharedPrefHelper.clear();
     emit(const AuthState.authUnauthenticated());
-  }
-
-  Future<void> _saveUserToken(String token) async {
-    await SharedPrefHelper.setSecuredString(SharedPrefKeys.userToken, token);
-    DioFactory.setTokenIntoHeaderAfterLogin(token);
   }
 
   // Clear all form fields

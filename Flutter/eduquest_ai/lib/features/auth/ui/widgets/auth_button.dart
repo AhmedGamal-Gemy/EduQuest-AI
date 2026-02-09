@@ -1,4 +1,5 @@
 import 'package:eduquest_ai/core/helper/constants.dart';
+import 'package:eduquest_ai/core/helper/function_helper.dart';
 import 'package:eduquest_ai/core/routing/routes.dart';
 import 'package:eduquest_ai/core/theme/app_colors.dart';
 import 'package:eduquest_ai/features/auth/logic/auth_cubit.dart';
@@ -20,7 +21,8 @@ class AuthButtonBlocConsumer extends StatelessWidget {
         state.whenOrNull(
           authAuthenticated: (token, role) {
             authCubit.clearForm();
-            Navigator.pushReplacementNamed(context, Routes.chooseRole);
+            // Navigator.pushReplacementNamed(context, Routes.chooseRole);
+            checkUserAndNavigate(context);
           },
         );
       },
@@ -52,21 +54,25 @@ class AuthButtonBlocConsumer extends StatelessWidget {
             ),
             if (errorMessage != null) ...[
               const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error, color: Colors.redAccent),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      errorMessage,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                        fontWeight: FontWeight.w500,
+              Align(
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error, color: Colors.redAccent),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        errorMessage,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ],

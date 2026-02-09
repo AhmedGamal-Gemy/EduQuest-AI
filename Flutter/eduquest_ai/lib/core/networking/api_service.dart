@@ -12,16 +12,16 @@ part 'api_service.g.dart';
 abstract class ApiService {
   factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
 
-  // @FormUrlEncoded()
-  // @POST(ApiConstants.login)
-  // Future<LoginResponse> login(
-  //   @Field("username") String username,
-  //   @Field("password") String password,
-  // );
+  @FormUrlEncoded()
   @POST(ApiConstants.login)
   Future<LoginResponse> login(
-    @Body() LoginRequestBody loginRequestBody,
+    @Field("username") String username,
+    @Field("password") String password,
   );
+  // @POST(ApiConstants.login)
+  // Future<LoginResponse> login(
+  //   @Body() LoginRequestBody loginRequestBody,
+  // );
 
   @POST(ApiConstants.signup)
   Future<SignupResponse> signup(

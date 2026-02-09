@@ -76,31 +76,31 @@ extension DataSourceExtension on DataSourceEnum {
   ApiErrorModel get failure {
     switch (this) {
       case DataSourceEnum.noContent:
-        return ApiErrorModel(code: ResponseCode.noContent, message: ResponseMessage.noContent);
+        return ApiErrorModel(code: ResponseCode.noContent, detail: ResponseMessage.noContent);
       case DataSourceEnum.badRequest:
-        return ApiErrorModel(code: ResponseCode.badRequest, message: ResponseMessage.badRequest);
+        return ApiErrorModel(code: ResponseCode.badRequest, detail: ResponseMessage.badRequest);
       case DataSourceEnum.unauthorized:
-        return ApiErrorModel(code: ResponseCode.unauthorized, message: ResponseMessage.unauthorized);
+        return ApiErrorModel(code: ResponseCode.unauthorized, detail: ResponseMessage.unauthorized);
       case DataSourceEnum.forbidden:
-        return ApiErrorModel(code: ResponseCode.forbidden, message: ResponseMessage.forbidden);
+        return ApiErrorModel(code: ResponseCode.forbidden, detail: ResponseMessage.forbidden);
       case DataSourceEnum.notFound:
-        return ApiErrorModel(code: ResponseCode.notFound, message: ResponseMessage.notFound);
+        return ApiErrorModel(code: ResponseCode.notFound, detail: ResponseMessage.notFound);
       case DataSourceEnum.internalServerError:
-        return ApiErrorModel(code: ResponseCode.internalServerError, message: ResponseMessage.internalServerError);
+        return ApiErrorModel(code: ResponseCode.internalServerError, detail: ResponseMessage.internalServerError);
       case DataSourceEnum.connectTimeout:
-        return ApiErrorModel(code: ResponseCode.connectTimeout, message: ResponseMessage.connectTimeout);
+        return ApiErrorModel(code: ResponseCode.connectTimeout, detail: ResponseMessage.connectTimeout);
       case DataSourceEnum.sendTimeout:
-        return ApiErrorModel(code: ResponseCode.sendTimeout, message: ResponseMessage.sendTimeout);
+        return ApiErrorModel(code: ResponseCode.sendTimeout, detail: ResponseMessage.sendTimeout);
       case DataSourceEnum.receiveTimeout:
-        return ApiErrorModel(code: ResponseCode.receiveTimeout, message: ResponseMessage.receiveTimeout);
+        return ApiErrorModel(code: ResponseCode.receiveTimeout, detail: ResponseMessage.receiveTimeout);
       case DataSourceEnum.cancel:
-        return ApiErrorModel(code: ResponseCode.cancel, message: ResponseMessage.cancel);
+        return ApiErrorModel(code: ResponseCode.cancel, detail: ResponseMessage.cancel);
       case DataSourceEnum.cacheError:
-        return ApiErrorModel(code: ResponseCode.cacheError, message: ResponseMessage.cacheError);
+        return ApiErrorModel(code: ResponseCode.cacheError, detail: ResponseMessage.cacheError);
       case DataSourceEnum.noInternetConnection:
-        return ApiErrorModel(code: ResponseCode.noInternetConnection, message: ResponseMessage.noInternetConnection);
+        return ApiErrorModel(code: ResponseCode.noInternetConnection, detail: ResponseMessage.noInternetConnection);
       case DataSourceEnum.defaultError:
-        return ApiErrorModel(code: ResponseCode.defaultError, message: ResponseMessage.defaultError);
+        return ApiErrorModel(code: ResponseCode.defaultError, detail: ResponseMessage.defaultError);
     }
   }
 }
@@ -138,13 +138,13 @@ ApiErrorModel _handleError(dynamic error) {
       case DioExceptionType.badCertificate:
         return ApiErrorModel(
           code: -8,
-          message: "Bad SSL Certificate. Could not verify server.",
+          detail: "Bad SSL Certificate. Could not verify server.",
         );
 
       case DioExceptionType.connectionError:
         return ApiErrorModel(
           code: -9,
-          message: "Failed to connect to the server. Check your network.",
+          detail: "Failed to connect to the server. Check your network.",
         );
     }
   }

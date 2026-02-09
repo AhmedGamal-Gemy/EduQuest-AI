@@ -89,11 +89,11 @@ class _ChooseRolePageState extends State<ChooseRolePage> {
                           SharedPrefHelper.setData(SharedPrefKeys.userRole, selectedRole!.name);
                           String? role = await SharedPrefHelper.getString(SharedPrefKeys.userRole);
                           debugPrint("UserRole: $role");
+                          if (!mounted) return;
+
                           if (role == UserRole.instructor.name) {
-                            if (!mounted) {}
                             Navigator.pushReplacementNamed(context, Routes.instructorNavbar);
                           } else {
-                            if (!mounted) {}
                             Navigator.pushReplacementNamed(context, Routes.instructorNavbar);
                           }
                         },
