@@ -1,6 +1,5 @@
 import 'package:eduquest_ai/core/common/widgets/app_logo.dart';
 import 'package:eduquest_ai/core/helper/constants.dart';
-import 'package:eduquest_ai/core/helper/function_helper.dart';
 import 'package:eduquest_ai/core/helper/shared_pref_helper.dart';
 import 'package:eduquest_ai/core/networking/api_constants.dart';
 import 'package:eduquest_ai/core/routing/routes.dart';
@@ -19,7 +18,23 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    checkUserAndNavigate(context);
+
+    checkUserAndNavigate2(context);
+  }
+
+  Future<void> checkUserAndNavigate2(context) async {
+    await Future.delayed(const Duration(seconds: 2));
+    final String? userRole = await SharedPrefHelper.getString(SharedPrefKeys.userRole);
+    debugPrint("userRole: $userRole: ${userRole == null}.... role is null");
+    if (!mounted) return;
+
+    if (userRole == null) {
+      Navigator.pushReplacementNamed(context, Routes.authScreen);
+    } else if (userRole == Role.instructor.name) {
+      Navigator.pushReplacementNamed(context, Routes.appNavigationBar, arguments: Role.instructor);
+    } else {
+      Navigator.pushReplacementNamed(context, Routes.appNavigationBar, arguments: Role.student);
+    }
   }
 
   @override

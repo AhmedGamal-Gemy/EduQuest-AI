@@ -17,7 +17,7 @@ class AuthRepo {
   Future<ApiResult<LoginResponse>> login(LoginRequestBody body) async {
     try {
       final response = await _apiService.login(body.username!, body.password!);
-      await saveUserData(response.accessToken, response.role);
+      await saveUserData(response.accessToken, response.role, response.id);
       return ApiResult.success(response);
     } catch (exception) {
       return ApiResult.failure(ErrorHandler.handle(exception));
@@ -27,21 +27,22 @@ class AuthRepo {
   Future<ApiResult<SignupResponse>> signup(SignupRequestBody body) async {
     try {
       final response = await _apiService.signup(body);
-      await saveUserData(response.accessToken, response.role);
+      await saveUserData(response.accessToken, response.role, response.id);
       return ApiResult.success(response);
     } catch (exception) {
       return ApiResult.failure(ErrorHandler.handle(exception));
     }
   }
 
-  Future<void> saveUserData(String accessToken, String role) async {
+  Future<void> saveUserData(String accessToken, String role, String id) async {
     // final decodedToken = JwtDecoder.decode(response.accessToken);
     // final decodedRole = JwtDecoder.decode(response.role);
-    await SharedPrefHelper.setData(SharedPrefKeys.userToken, accessToken);
-    await SharedPrefHelper.setData(SharedPrefKeys.userRole, role);
+    // sub + names
+    await SharedPrefHelper.setString(SharedPrefKeys.userToken, accessToken);
+    await SharedPrefHelper.setString(SharedPrefKeys.userRole, role);
+    await SharedPrefHelper.setString(SharedPrefKeys.id, id);
     DioFactory.setTokenIntoHeaderAfterLogin(accessToken);
-  }
-// setSecuredString
+  } // setSecuredString
   //Todo Logout:
 }
 

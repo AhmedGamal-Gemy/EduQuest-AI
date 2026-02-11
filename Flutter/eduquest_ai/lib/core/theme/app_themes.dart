@@ -17,6 +17,12 @@ class AppThemes {
       error: Colors.redAccent,
       onError: AppColors.whiteSoft,
     ),
+    // Optional: map previous properties to use the ColorScheme
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: AppColors.deepBlue, // use surface
+      selectedItemColor: AppColors.purple, // use primary
+      unselectedItemColor: AppColors.whiteSoft, // use onSurface
+    ),
 
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.navyBlue,

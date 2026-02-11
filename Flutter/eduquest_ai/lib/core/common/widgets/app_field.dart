@@ -9,6 +9,7 @@ class AppField extends StatefulWidget {
     this.isObscure = false,
     this.controller,
     this.validator,
+    this.maxLines = 1,
   });
 
   final String hint;
@@ -16,6 +17,7 @@ class AppField extends StatefulWidget {
   final bool isObscure;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
+  final int? maxLines;
 
   @override
   State<AppField> createState() => _AppFieldState();
@@ -42,6 +44,7 @@ class _AppFieldState extends State<AppField> {
         validator: widget.validator,
         obscureText: _isObscure,
         style: const TextStyle(color: Colors.white),
+        maxLines: widget.maxLines,
         decoration: InputDecoration(
           hintText: widget.hint,
           hintStyle: const TextStyle(color: Colors.white38),

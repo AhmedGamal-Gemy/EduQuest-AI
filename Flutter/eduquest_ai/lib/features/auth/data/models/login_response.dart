@@ -5,13 +5,20 @@ part 'login_response.g.dart';
 class LoginResponse {
   final String id;
   final String email;
+  @JsonKey(name: 'is_active')
   final bool isActive;
+  @JsonKey(name: 'is_superuser')
   final bool isSuperuser;
+  @JsonKey(name: 'is_verified')
   final bool isVerified;
+  @JsonKey(name: 'first_name')
   final String? firstName;
+  @JsonKey(name: 'last_name')
   final String? lastName;
   final String role;
+  @JsonKey(name: 'access_token')
   final String accessToken;
+  @JsonKey(name: 'token_type')
   final String tokenType;
 
   LoginResponse({

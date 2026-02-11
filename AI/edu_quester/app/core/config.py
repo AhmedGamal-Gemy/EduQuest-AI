@@ -13,7 +13,9 @@ class Settings(BaseSettings):
 
     
     # CORS
-    BACKEND_CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = []
+    BACKEND_CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = [
+        "http://localhost:49990",
+    ]
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod

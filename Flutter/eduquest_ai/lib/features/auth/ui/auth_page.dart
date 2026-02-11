@@ -7,7 +7,6 @@ import 'package:eduquest_ai/core/helper/constants.dart';
 import 'package:eduquest_ai/core/theme/app_colors.dart';
 import 'package:eduquest_ai/features/auth/logic/auth_cubit.dart';
 import 'package:eduquest_ai/features/auth/logic/auth_states.dart';
-import 'package:eduquest_ai/features/auth/ui/choose_role_page.dart';
 import 'package:eduquest_ai/features/auth/ui/widgets/auth_button.dart';
 import 'package:eduquest_ai/features/auth/ui/widgets/auth_header.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +21,7 @@ class AuthPage extends StatelessWidget {
       body: BlocBuilder<AuthCubit, AuthState>(
         builder: (context, state) {
           final authType = state.whenOrNull(authToggleAuthType: (type) => type) ?? AuthType.signin;
-          final selectedRole = state.whenOrNull(authSelectedRole: (type) => type) ?? UserRole.instructor;
+          final selectedRole = state.whenOrNull(authSelectedRole: (type) => type) ?? Role.instructor;
 
           final authCubit = context.read<AuthCubit>();
           return AppBody(
@@ -66,25 +65,33 @@ class AuthPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 24),
                         if (authCubit.authType == AuthType.signup) ...[
-                          _RoleCard(
-                            title: "Instructor",
-                            description: "Manage courses, upload materials, and get real-time AI validation.",
-                            icon: Icons.present_to_all_rounded,
-                            color: const Color(0xFF8B5CF6),
-                            selected: selectedRole == UserRole.instructor,
-                            onTap: () => authCubit.authSelectedRole(),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _RoleCard(
+                                  title: "Instructor",
+                                  description: "Manage courses, upload materials, and get real-time AI validation.",
+                                  icon: Icons.present_to_all_rounded,
+                                  color: const Color(0xFF8B5CF6),
+                                  selected: selectedRole == Role.instructor,
+                                  onTap: () => authCubit.authSelectedRole(),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: _RoleCard(
+                                  title: "Student",
+                                  description: "Join live sessions, gain XP, and ask AI-filtered questions.",
+                                  icon: Icons.school_rounded,
+                                  color: const Color(0xFF22D3EE),
+                                  selected: selectedRole == Role.student,
+                                  onTap: () => authCubit.authSelectedRole(),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 20),
-                          _RoleCard(
-                            title: "Student",
-                            description: "Join live sessions, gain XP, and ask AI-filtered questions.",
-                            icon: Icons.school_rounded,
-                            color: const Color(0xFF22D3EE),
-                            selected: selectedRole == UserRole.student,
-                            onTap: () => authCubit.authSelectedRole(),
-                          ),
+                          const SizedBox(height: 16),
                         ],
-                        const SizedBox(height: 24),
                         AuthButtonBlocConsumer(),
                       ],
                     ),
@@ -132,16 +139,16 @@ class _RoleCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(12),
         child: BackdropFilter(
           //Todo CardGlass
           filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 250),
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: selected ? color.withValues(alpha: 0.18) : Colors.white.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: selected ? color : Colors.white10,
                 width: selected ? 1.5 : 1,
@@ -150,37 +157,21 @@ class _RoleCard extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 52,
-                  height: 52,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(icon, color: color, size: 28),
+                  child: Icon(icon, color: color, size: 20),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        description,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.white60,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
                 ),
               ],
