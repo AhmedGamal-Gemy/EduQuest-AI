@@ -1,13 +1,33 @@
 from typing import List
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from beanie import PydanticObjectId
 from app.db.models import Course, User
 from app.schemas.course import CourseCreate, CourseRead, CourseUpdate
 from app.core.users import current_active_user
 from app.core.enums import UserRole
+from app.services.ai_image_service import generate_course_image
+from app.utils.file_utils import save_upload_file
 
 router = APIRouter()
+
+@router.post("/upload-image", response_model=dict)
+async def upload_course_image(
+    file: UploadFile = File(...),
+    current_user: User = Depends(current_active_user)
+):
+    """
+    Upload an image for a course. Returns the image URL.
+    Only instructors can upload images.
+    """
+    if current_user.role != UserRole.INSTRUCTOR:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors can upload images"
+        )
+
+    file_url = save_upload_file(file)
+    return {"image_url": file_url}
 
 @router.post("/", response_model=CourseRead, status_code=status.HTTP_201_CREATED)
 async def create_course(
@@ -16,6 +36,7 @@ async def create_course(
 ):
     """
     Create a new course. Only instructors can create courses.
+    If image_url is not provided, one will be generated based on the title.
     """
     if current_user.role != UserRole.INSTRUCTOR:
         raise HTTPException(
@@ -23,6 +44,10 @@ async def create_course(
             detail="Only instructors can create courses"
         )
     
+    # Generate image if not provided
+    if not course_in.image_url:
+        course_in.image_url = generate_course_image(course_in.title, course_in.description or "")
+
     course = Course(
         **course_in.model_dump(),
         instructor=current_user

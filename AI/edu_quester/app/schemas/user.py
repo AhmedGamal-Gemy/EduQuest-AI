@@ -2,6 +2,7 @@ import uuid
 from typing import Optional
 from app.core.enums import UserRole
 from fastapi_users import schemas
+from pydantic import BaseModel
 
 class UserRead(schemas.BaseUser[uuid.UUID]):
     first_name: Optional[str] = None
@@ -18,7 +19,7 @@ class UserUpdate(schemas.BaseUserUpdate):
     last_name: Optional[str] = None
     role: Optional[UserRole] = None
 
-class UserRegisterResponse(UserRead):
+class UserRegisterResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
 

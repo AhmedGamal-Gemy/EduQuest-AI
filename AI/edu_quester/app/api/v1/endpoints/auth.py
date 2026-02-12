@@ -20,18 +20,26 @@ async def login(
     user_manager: UserManager = Depends(get_user_manager),
 ):
     from fastapi import HTTPException, status
-    
+
+    # Check if user exists first
+    user = await user_manager.get_by_email(credentials.username)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
     user = await user_manager.authenticate(credentials)
 
     if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="LOGIN_BAD_CREDENTIALS",
+            detail="Invalid password",
         )
-    
+
     strategy = auth_backend.get_strategy()
     token = await strategy.write_token(user)
-    
+
     # 3. Return user data + token
     return {**UserRead.model_validate(user).model_dump(), "access_token": token, "token_type": "bearer"}
 
@@ -41,16 +49,16 @@ auth_router = fastapi_users.get_auth_router(auth_backend)
 for route in auth_router.routes:
     if route.path == "/logout":
         router.add_route(
-            f"{AuthRoutes.JWT}{route.path}", 
-            route.endpoint, 
-            methods=route.methods, 
+            f"{AuthRoutes.JWT}{route.path}",
+            route.endpoint,
+            methods=route.methods,
             name=route.name
         )
 
 # Custom registration endpoint to return JWT on success
 @router.post(
-    "/register", 
-    response_model=UserRegisterResponse, 
+    "/register",
+    response_model=UserRegisterResponse,
     status_code=201,
     dependencies=[Depends(RateLimiter(times=10, seconds=60))]
 )
@@ -70,20 +78,20 @@ async def register(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="REGISTER_USER_ALREADY_EXISTS",
         )
-    
+
     # 2. Generate token immediately
     strategy = auth_backend.get_strategy()
     token = await strategy.write_token(user)
-    
-    # 3. Return user data + token
-    return {**UserRead.model_validate(user).model_dump(), "access_token": token, "token_type": "bearer"}
+
+    # 3. Return only token
+    return {"access_token": token, "token_type": "bearer"}
 
 router.include_router(
-    fastapi_users.get_reset_password_router(), 
-    prefix=AuthRoutes.RESET_PASSWORD, 
+    fastapi_users.get_reset_password_router(),
+    prefix=AuthRoutes.RESET_PASSWORD,
 )
 
 router.include_router(
-    fastapi_users.get_verify_router(UserRead), 
-    prefix=AuthRoutes.VERIFY, 
+    fastapi_users.get_verify_router(UserRead),
+    prefix=AuthRoutes.VERIFY,
 )

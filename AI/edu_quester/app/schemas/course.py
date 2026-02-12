@@ -7,6 +7,7 @@ from app.core.enums import CourseLevel
 class CourseBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = Field(None, max_length=1000)
+    image_url: Optional[str] = None
     github_repo_url: Optional[HttpUrl] = None
     level: CourseLevel = CourseLevel.BEGINNER
     is_published: bool = False
@@ -17,6 +18,7 @@ class CourseCreate(CourseBase):
 class CourseUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=100)
     description: Optional[str] = Field(None, max_length=1000)
+    image_url: Optional[str] = None
     github_repo_url: Optional[HttpUrl] = None
     level: Optional[CourseLevel] = None
     is_published: Optional[bool] = None
