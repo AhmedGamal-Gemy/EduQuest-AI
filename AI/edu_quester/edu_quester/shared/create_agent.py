@@ -2,31 +2,36 @@
 Agent Factory - Creates agents with consistent configuration and logging.
 """
 
-from typing import Callable
-from typing import Union
-from google.adk.agents import LlmAgent, BaseAgent, LoopAgent, SequentialAgent, ParallelAgent
-from google.adk.planners import BuiltInPlanner, PlanReActPlanner
-from google.adk.models.lite_llm import LiteLlm
-from google.adk.tools import BaseTool
+from collections.abc import Callable
+from typing import Any
 
+from google.adk.agents import (
+    BaseAgent,
+    LlmAgent,
+    LoopAgent,
+    ParallelAgent,
+    SequentialAgent,
+)
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.planners import BuiltInPlanner, PlanReActPlanner
+from google.adk.tools import BaseTool
 from google.genai import types
-from typing import List, Type, Any
 from pydantic import BaseModel
 
 from ..constants import AgentTypes
 from .callbacks import (
-    before_agent_callback,
     after_agent_callback,
-    before_model_callback,
     after_model_callback,
-    before_tool_callback,
     after_tool_callback,
+    before_agent_callback,
+    before_model_callback,
+    before_tool_callback,
 )
 
-ToolType = Union[BaseTool, Callable]
+ToolType = BaseTool | Callable
 
 def create_agent(
-    agent_type: AgentTypes, 
+    agent_type: AgentTypes,
     name: str,
     description: str,
     instruction: str,
@@ -34,15 +39,15 @@ def create_agent(
     model: str = None,
     provider: str = None,
     # Schema config
-    input_schema: Type[BaseModel] = None,
-    output_schema: Type[BaseModel] = None,
+    input_schema: type[BaseModel] = None,
+    output_schema: type[BaseModel] = None,
     output_key: str = None,
     # Thinking/Planning
     thinking: bool = False,
     thinking_budget: int = 1024,
     # Sub-agents and tools
-    sub_agents: List[BaseAgent] = None,
-    tools: List[ToolType] = None,
+    sub_agents: list[BaseAgent] = None,
+    tools: list[ToolType] = None,
     # Agent delegation control
     disallow_transfer_to_peers: bool = False,  # Prevent peer-to-peer delegation
     # Optional: custom callbacks (defaults to our logging callbacks)
@@ -77,6 +82,7 @@ def create_agent(
     """
 
     # -------------------------------------------------------------------------
+
     # Build model string
     # -------------------------------------------------------------------------
     model_string = None
@@ -86,7 +92,7 @@ def create_agent(
         if provider and provider.lower() not in ['google', 'gemini']:
             # For non-Google providers, use provider/model format
             model_string = f"{provider}/{model}"
-            
+
             # Configure LiteLLM with retry logic for empty responses
             model_instance = LiteLlm(
                 model=model_string,
@@ -94,7 +100,7 @@ def create_agent(
                 num_retries=3,  # Retry up to 3 times on failure
                 request_timeout=120,  # 2 minute timeout
             )
-            
+
             # Use PlanReActPlanner for thinking mode with Mistral/other providers
             # NOTE: ReAct planner may output tool calls as text, but our
             # after_model_callback now has injection logic to parse and convert
@@ -120,9 +126,9 @@ def create_agent(
                     thinking_config=thinking_config
                 )
 
-        
-        
-    
+
+
+
     # -------------------------------------------------------------------------
     # Determine callbacks
     # -------------------------------------------------------------------------
@@ -130,21 +136,21 @@ def create_agent(
     aa_callback = custom_after_agent_callback
     bm_callback = custom_before_model_callback
     am_callback = custom_after_model_callback
-    
+
     if use_logging_callbacks:
         ba_callback = ba_callback or before_agent_callback
         aa_callback = aa_callback or after_agent_callback
         bm_callback = bm_callback or before_model_callback
         am_callback = am_callback or after_model_callback
-    
+
     # -------------------------------------------------------------------------
     # Create agent based on type
     # -------------------------------------------------------------------------
-    
+
     if agent_type == AgentTypes.LLM:
         if not model_instance:
             raise ValueError("LlmAgent requires a model")
-        
+
         return LlmAgent(
             model=model_instance,
             name=name,
@@ -165,11 +171,11 @@ def create_agent(
             before_tool_callback=before_tool_callback,  # Anti-hallucination validation
             after_tool_callback=after_tool_callback,  # Timing and result logging
         )
-    
+
     elif agent_type == AgentTypes.SEQUENTIAL:
         if not sub_agents:
             raise ValueError("SequentialAgent requires sub_agents")
-        
+
         return SequentialAgent(
             name=name,
             description=description,
@@ -178,11 +184,11 @@ def create_agent(
             before_agent_callback=ba_callback,
             after_agent_callback=aa_callback,
         )
-    
+
     elif agent_type == AgentTypes.PARALLEL:
         if not sub_agents:
             raise ValueError("ParallelAgent requires sub_agents")
-        
+
         return ParallelAgent(
             name=name,
             description=description,
@@ -191,11 +197,11 @@ def create_agent(
             before_agent_callback=ba_callback,
             after_agent_callback=aa_callback,
         )
-    
+
     elif agent_type == AgentTypes.LOOP:
         if not sub_agents:
             raise ValueError("LoopAgent requires sub_agents")
-        
+
         return LoopAgent(
             name=name,
             description=description,
@@ -204,7 +210,7 @@ def create_agent(
             before_agent_callback=ba_callback,
             after_agent_callback=aa_callback,
         )
-    
+
     else:
         raise ValueError(f"Invalid agent type: {agent_type}")
 
@@ -215,13 +221,13 @@ def create_llm_agent(
     instruction: str,
     model: str = "gemini-2.5-flash",
     provider: str = None,
-    input_schema: Type[BaseModel] = None,
-    output_schema: Type[BaseModel] = None,
+    input_schema: type[BaseModel] = None,
+    output_schema: type[BaseModel] = None,
     output_key: str = None,
     thinking: bool = False,
     thinking_budget: int = 1024,
-    sub_agents: List[BaseAgent] = None,
-    tools: List[Any] = None,
+    sub_agents: list[BaseAgent] = None,
+    tools: list[Any] = None,
     disallow_transfer_to_peers: bool = False,
     use_logging_callbacks: bool = True,
 ) -> LlmAgent:
@@ -250,7 +256,7 @@ def create_llm_agent(
 def create_sequential_agent(
     name: str,
     description: str,
-    sub_agents: List[BaseAgent],
+    sub_agents: list[BaseAgent],
     use_logging_callbacks: bool = True,
 ) -> SequentialAgent:
     """
@@ -269,7 +275,7 @@ def create_sequential_agent(
 def create_parallel_agent(
     name: str,
     description: str,
-    sub_agents: List[BaseAgent],
+    sub_agents: list[BaseAgent],
     max_iterations: int = 10,
     use_logging_callbacks: bool = True,
 ) -> ParallelAgent:
@@ -290,7 +296,7 @@ def create_parallel_agent(
 def create_loop_agent(
     name: str,
     description: str,
-    sub_agents: List[BaseAgent],
+    sub_agents: list[BaseAgent],
     max_iterations: int = 10,
     use_logging_callbacks: bool = True,
 ) -> LoopAgent:

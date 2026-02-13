@@ -1,5 +1,5 @@
-import pytest
 from edu_quester.shared.logger import logger
+
 
 def test_logger_initialization():
     assert logger is not None

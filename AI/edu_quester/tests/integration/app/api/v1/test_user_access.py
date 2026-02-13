@@ -1,6 +1,9 @@
-import pytest
 import uuid
+
+import pytest
+
 from app.core.config import settings
+
 
 @pytest.mark.asyncio(loop_scope="module")
 async def test_user_access_permissions(client):
@@ -13,7 +16,7 @@ async def test_user_access_permissions(client):
         "role": "student"
     })
     id_a = reg_a.json()["id"]
-    
+
     login_a = await client.post(f"{settings.API_V1_STR}/auth/jwt/login", data={"username": email_a, "password": pass_a})
     token_a = login_a.json()["access_token"]
     headers_a = {"Authorization": f"Bearer {token_a}"}
@@ -27,10 +30,11 @@ async def test_user_access_permissions(client):
         "role": "student"
     })
     id_b = reg_b.json()["id"]
-    
+
     login_b = await client.post(f"{settings.API_V1_STR}/auth/jwt/login", data={"username": email_b, "password": pass_b})
     token_b = login_b.json()["access_token"]
-    headers_b = {"Authorization": f"Bearer {token_b}"}
+    # headers_b not used in this test
+
 
     # 3. Register and Login Instructor
     email_i = f"instr_access_{uuid.uuid4()}@example.com"
@@ -41,13 +45,13 @@ async def test_user_access_permissions(client):
         "role": "instructor"
     })
     id_i = reg_i.json()["id"]
-    
+
     login_i = await client.post(f"{settings.API_V1_STR}/auth/jwt/login", data={"username": email_i, "password": pass_i})
     token_i = login_i.json()["access_token"]
     headers_i = {"Authorization": f"Bearer {token_i}"}
 
     # --- VERIFY GET /{id} ---
-    
+
     # Student A can GET self
     res = await client.get(f"{settings.API_V1_STR}/students/{id_a}", headers=headers_a)
     assert res.status_code == 200
@@ -86,7 +90,7 @@ async def test_user_access_permissions(client):
     # Student A can DELETE self
     res = await client.delete(f"{settings.API_V1_STR}/students/{id_a}", headers=headers_a)
     assert res.status_code == 204
-    
+
     # Verify Student A is gone
     res = await client.get(f"{settings.API_V1_STR}/students/{id_a}", headers=headers_i)
     assert res.status_code == 404

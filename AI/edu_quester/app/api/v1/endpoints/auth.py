@@ -1,9 +1,16 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_limiter.depends import RateLimiter
-from app.core.users import auth_backend, fastapi_users, get_user_manager, UserManager
-from app.schemas.user import UserRead, UserCreate, UserRegisterResponse, BearerResponseWithUserId
-from app.core.enums import Tags, AuthRoutes
+from fastapi_users import exceptions as fastapi_users_exceptions
+
+from app.core.enums import AuthRoutes
+from app.core.users import UserManager, auth_backend, fastapi_users, get_user_manager
+from app.schemas.user import (
+    BearerResponseWithUserId,
+    UserCreate,
+    UserRead,
+    UserRegisterResponse,
+)
 
 router = APIRouter()
 
@@ -11,7 +18,7 @@ router = APIRouter()
 @router.post(
     f"{AuthRoutes.JWT}/login",
     response_model=BearerResponseWithUserId,
-    name=f"auth:jwt.login",
+    name="auth:jwt.login",
     dependencies=[Depends(RateLimiter(times=5, seconds=60))]
 )
 async def login(
@@ -19,8 +26,6 @@ async def login(
     credentials: OAuth2PasswordRequestForm = Depends(),
     user_manager: UserManager = Depends(get_user_manager),
 ):
-    from fastapi import HTTPException, status
-    
     user = await user_manager.authenticate(credentials)
 
     if user is None or not user.is_active:
@@ -28,10 +33,10 @@ async def login(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="LOGIN_BAD_CREDENTIALS",
         )
-    
+
     strategy = auth_backend.get_strategy()
     token = await strategy.write_token(user)
-    
+
     # 3. Return user data + token
     return {**UserRead.model_validate(user).model_dump(), "access_token": token, "token_type": "bearer"}
 
@@ -41,16 +46,16 @@ auth_router = fastapi_users.get_auth_router(auth_backend)
 for route in auth_router.routes:
     if route.path == "/logout":
         router.add_route(
-            f"{AuthRoutes.JWT}{route.path}", 
-            route.endpoint, 
-            methods=route.methods, 
+            f"{AuthRoutes.JWT}{route.path}",
+            route.endpoint,
+            methods=route.methods,
             name=route.name
         )
 
 # Custom registration endpoint to return JWT on success
 @router.post(
-    "/register", 
-    response_model=UserRegisterResponse, 
+    "/register",
+    response_model=UserRegisterResponse,
     status_code=201,
     dependencies=[Depends(RateLimiter(times=10, seconds=60))]
 )
@@ -59,31 +64,28 @@ async def register(
     user_create: UserCreate,
     user_manager: UserManager = Depends(get_user_manager),
 ):
-    from fastapi import HTTPException, status
-    from fastapi_users import exceptions
-
     # 1. Create user
     try:
         user = await user_manager.create(user_create, safe=True, request=request)
-    except exceptions.UserAlreadyExists:
+    except fastapi_users_exceptions.UserAlreadyExists as err:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="REGISTER_USER_ALREADY_EXISTS",
-        )
-    
+        ) from err
+
     # 2. Generate token immediately
     strategy = auth_backend.get_strategy()
     token = await strategy.write_token(user)
-    
+
     # 3. Return user data + token
     return {**UserRead.model_validate(user).model_dump(), "access_token": token, "token_type": "bearer"}
 
 router.include_router(
-    fastapi_users.get_reset_password_router(), 
-    prefix=AuthRoutes.RESET_PASSWORD, 
+    fastapi_users.get_reset_password_router(),
+    prefix=AuthRoutes.RESET_PASSWORD,
 )
 
 router.include_router(
-    fastapi_users.get_verify_router(UserRead), 
-    prefix=AuthRoutes.VERIFY, 
+    fastapi_users.get_verify_router(UserRead),
+    prefix=AuthRoutes.VERIFY,
 )
