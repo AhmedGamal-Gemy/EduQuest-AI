@@ -19,3 +19,11 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={"detail": exc.errors()},
     )
+
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global handler for unexpected exceptions to prevent server crash."""
+    logger.bind(author="api").error(f"Internal Server Error: {exc}")
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "Internal Server Error"},
+    )

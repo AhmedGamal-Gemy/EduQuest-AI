@@ -6,10 +6,11 @@ Provides CRUD operations for courses and student enrollment management.
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
 from fastapi_limiter.depends import RateLimiter
 
 from app.core.config import settings
+from app.core.enums import CourseLevel
 from app.core.users import current_active_user
 from app.db.models import User
 from app.schemas.course import (
@@ -19,6 +20,7 @@ from app.schemas.course import (
     PaginatedCourseResponse,
 )
 from app.services.course_service import CourseService, get_course_service
+from app.services.image_service import generate_course_image, save_upload_file
 
 router = APIRouter()
 
@@ -39,13 +41,45 @@ def _course_to_response(course) -> dict:
     dependencies=[Depends(RateLimiter(times=10, seconds=60))]
 )
 async def create_course(
-    course_in: CourseCreate,
+    title: str = Form(..., min_length=1, max_length=100),
+    description: str | None = Form(None, max_length=1000),
+    github_repo_url: str | None = Form(None),
+    level: CourseLevel = Form(CourseLevel.BEGINNER),
+    is_published: bool = Form(False),
+    image_url: str | None = Form(None),
+    image: UploadFile | None = File(None),
     current_user: User = Depends(current_active_user),
     service: CourseService = Depends(get_course_service)
 ):
     """
     Create a new course. Only instructors can create courses.
+
+    Accepts multipart/form-data to support image uploads.
     """
+    # Handle potential empty strings from form data for optional fields
+    if github_repo_url == "":
+        github_repo_url = None
+    if description == "":
+        description = None
+    if image_url == "":
+        image_url = None
+
+    final_image_url = image_url
+
+    if image:
+        final_image_url = await save_upload_file(image)
+    elif not final_image_url:
+        final_image_url = await generate_course_image(title, description)
+
+    course_in = CourseCreate(
+        title=title,
+        description=description,
+        github_repo_url=github_repo_url,
+        level=level,
+        is_published=is_published,
+        image_url=final_image_url
+    )
+
     course = await service.create_course(course_in, current_user)
     return _course_to_response(course)
 

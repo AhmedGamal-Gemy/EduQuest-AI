@@ -25,6 +25,7 @@ class Course(Document):
     id: UUID = Field(default_factory=uuid4)
     title: str = Field(..., unique=True)
     description: str | None = None
+    image_url: str | None = None
     github_repo_url: HttpUrl | None = None
     level: CourseLevel = Field(default=CourseLevel.BEGINNER)
     instructor: Link[User]
