@@ -1,15 +1,15 @@
-from __future__ import annotations
-
 """
 Unified application logger with per-scan log files.
 Shared between App and Agents.
 """
 
-import sys
+from __future__ import annotations
+
 import logging
+import sys
 import warnings
 from pathlib import Path
-from typing import Optional
+
 from loguru import logger as loguru_logger
 
 # --------------------------------------------------------------------------- #
@@ -64,18 +64,18 @@ def patcher(record):
     """Add default values for optional extra fields and handle agent coloring with ANSI."""
     author = record["extra"].get("author", "system")
     record["extra"].setdefault("author", author)
-    
+
     author_lower = author.lower()
     color_code = AGENT_COLORS.get("unknown")
-    
+
     for key, val in AGENT_COLORS.items():
         if key in author_lower:
             color_code = val
             break
-            
+
     # For Terminal: Use ANSI
     record["extra"]["colored_author"] = f"{color_code}[{author: ^12}]{RESET}"
-    
+
     record["extra"].setdefault("step", None)
     record["extra"].setdefault("trace_id", None)
     record["extra"].setdefault("node", None)
@@ -117,7 +117,7 @@ loguru_logger.add(
 class Logger:
     def __init__(self, logger):
         self._logger = logger
-        self._scan_handler_id: Optional[int] = None
+        self._scan_handler_id: int | None = None
 
     def step(self, step_name: str):
         return self._logger.bind(step=step_name)
@@ -139,7 +139,7 @@ class Logger:
             diagnose=True,
         )
         self._logger.debug(f"📁 Scan logging started: {log_file}")
-    
+
     def stop_scan_logging(self):
         if self._scan_handler_id is not None:
             try:
