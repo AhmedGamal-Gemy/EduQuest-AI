@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient, Response
 from fastapi import status
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
 
 # Helper to create an instructor and get token
 async def get_instructor_token(client: AsyncClient, email: str) -> str:
@@ -41,7 +41,7 @@ async def test_create_course_image_upload(client: AsyncClient):
     course = response.json()
     assert course["image_url"] is not None
     assert course["image_url"].startswith("/static/images/")
-    assert "test_image.png" in course["image_url"] or "_" in course["image_url"]
+    assert ".png" in course["image_url"]
 
 @pytest.mark.asyncio
 async def test_create_course_image_url(client: AsyncClient):
@@ -63,7 +63,7 @@ async def test_create_course_image_url(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_create_course_auto_image_grok_mock(client: AsyncClient):
-    """Test AI image generation with a mocked Grok API response."""
+    """Test AI image generation with a mocked Grok API response AND mocked image download."""
     token = await get_instructor_token(client, "inst_img_grok@example.com")
     headers = {"Authorization": f"Bearer {token}"}
 
@@ -74,25 +74,42 @@ async def test_create_course_auto_image_grok_mock(client: AsyncClient):
 
     # Mock settings to enable Grok
     with patch("app.core.config.settings.GROK_API_KEY", "fake_key"):
-        # Mock httpx.AsyncClient.post
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
-            mock_post.return_value = Response(
+        # Mock httpx used INSIDE image_service only, not globally to avoid breaking test client
+        with patch("app.services.image_service.httpx.AsyncClient") as MockClient:
+            mock_client_instance = MockClient.return_value.__aenter__.return_value
+
+            # Mock Grok response (URL)
+            mock_client_instance.post.return_value = Response(
                 200,
-                json={"data": [{"url": "https://grok-api.mock/image.png"}]}
+                json={"data": [{"url": "https://grok-api.mock/generated_image.png"}]}
             )
 
-            response = await client.post("/api/v1/courses/", data=data, headers=headers)
+            # Mock Image download response
+            mock_client_instance.get.return_value = Response(
+                200,
+                content=b"fake_image_bytes",
+                headers={"content-type": "image/png"}
+            )
 
-            assert response.status_code == status.HTTP_201_CREATED
-            course = response.json()
-            assert course["image_url"] == "https://grok-api.mock/image.png"
+            # Mock file writing to avoid creating files in test environment
+            with patch("builtins.open", new_callable=MagicMock):
+                response = await client.post("/api/v1/courses/", data=data, headers=headers)
 
-            # Verify correct API call structure
-            mock_post.assert_called_once()
-            args, kwargs = mock_post.call_args
-            assert args[0] == "https://api.x.ai/v1/images/generations"
-            assert kwargs["json"]["model"] == "grok-imagine-image"
-            assert kwargs["json"]["response_format"] == "url"
+        assert response.status_code == status.HTTP_201_CREATED
+        course = response.json()
+
+        # Should be a local path now, NOT the external URL
+        assert course["image_url"].startswith("/static/images/")
+        assert course["image_url"].endswith(".png")
+
+        # Verify correct API call structure
+        mock_client_instance.post.assert_called_once()
+        args, kwargs = mock_client_instance.post.call_args
+        assert args[0] == "https://api.x.ai/v1/images/generations"
+        assert kwargs["json"]["model"] == "grok-imagine-image"
+
+        # Verify download call
+        mock_client_instance.get.assert_called_once_with("https://grok-api.mock/generated_image.png", timeout=30.0)
 
 @pytest.mark.asyncio
 async def test_create_course_auto_image_fallback(client: AsyncClient):

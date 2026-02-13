@@ -17,24 +17,30 @@ IMAGES_DIR = STATIC_DIR / "images"
 # Ensure directories exist
 IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
-# Allowed image MIME types for validation
-ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+# Allowed image MIME types and extensions for validation
+ALLOWED_IMAGE_TYPES = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/gif": ".gif",
+    "image/webp": ".webp"
+}
 
 async def save_upload_file(file: UploadFile) -> str:
     """Save an uploaded file to the static/images directory and return its URL path.
 
-    Validates that the file is an image based on content type.
+    Validates that the file is an image based on content type and forces a safe extension.
     """
     if file.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid file type. Allowed: {', '.join(ALLOWED_IMAGE_TYPES)}"
+            detail=f"Invalid file type. Allowed: {', '.join(ALLOWED_IMAGE_TYPES.keys())}"
         )
 
-    # Generate a unique filename to prevent collisions and clean up filename
-    # Sanitize filename simply
-    safe_filename = "".join(c for c in file.filename if c.isalnum() or c in "._-")
-    filename = f"{uuid4()}_{safe_filename}"
+    # Determine safe extension from content type
+    ext = ALLOWED_IMAGE_TYPES[file.content_type]
+
+    # Generate a unique filename to prevent collisions
+    filename = f"{uuid4()}{ext}"
     file_path = IMAGES_DIR / filename
 
     # Write file to disk
@@ -51,16 +57,16 @@ async def generate_course_image(title: str, description: str | None = None) -> s
     """
     Generate an image URL for a course using Grok API (xAI) if available,
     otherwise fallback to placeholder.
+
+    If Grok API returns an image URL, this function downloads the image
+    locally to the static/images folder and returns the local path.
     """
     if settings.GROK_API_KEY:
         try:
             logger.bind(author="ai").info(f"Generating image for course: {title}")
 
             async with httpx.AsyncClient() as client:
-                # Official xAI endpoint and model
-                # Model: grok-imagine-image
-                # Endpoint: https://api.x.ai/v1/images/generations
-
+                # 1. Generate Image URL
                 response = await client.post(
                     "https://api.x.ai/v1/images/generations",
                     headers={
@@ -80,14 +86,35 @@ async def generate_course_image(title: str, description: str | None = None) -> s
                     data = response.json()
                     # Standard OpenAI-like response structure: { "data": [ { "url": "..." } ] }
                     if "data" in data and len(data["data"]) > 0:
-                        image_url = data["data"][0].get("url")
-                        if image_url:
-                            return image_url
+                        external_url = data["data"][0].get("url")
 
-                logger.bind(author="ai").warning(f"Grok API failed: {response.status_code} - {response.text}")
+                        if external_url:
+                            # 2. Download the image
+                            logger.bind(author="ai").info(f"Downloading generated image from: {external_url}")
+                            img_response = await client.get(external_url, timeout=30.0)
+
+                            if img_response.status_code == 200:
+                                # Determine extension from content-type or default to .png
+                                content_type = img_response.headers.get("content-type", "image/png")
+                                ext = ".png"
+                                if "jpeg" in content_type: ext = ".jpg"
+                                elif "gif" in content_type: ext = ".gif"
+                                elif "webp" in content_type: ext = ".webp"
+
+                                # 3. Save locally
+                                filename = f"{uuid4()}_generated{ext}"
+                                file_path = IMAGES_DIR / filename
+
+                                with open(file_path, "wb") as f:
+                                    f.write(img_response.content)
+
+                                # 4. Return local path
+                                return f"/static/images/{filename}"
+
+                logger.bind(author="ai").warning(f"Grok API failed or image download failed: {response.status_code}")
 
         except Exception as e:
-            logger.bind(author="ai").error(f"Error generating image with Grok: {e}")
+            logger.bind(author="ai").error(f"Error generating/saving image with Grok: {e}")
 
     # Fallback
     logger.bind(author="ai").info("Using fallback placeholder image")
