@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     # Environment: local, dev, staging, prod
     ENVIRONMENT: str = "dev"
 
-    
+
     # CORS
     BACKEND_CORS_ORIGINS: list[str | AnyHttpUrl] = []
 
@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = "redis://:securepassword@localhost:6379"
 
+    # AI - Image Generation
+    GROK_API_KEY: str | None = None
+
     # JWT
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
     ALGORITHM: str = "HS256"
@@ -66,4 +69,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-

@@ -1,15 +1,21 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.utils import get_openapi
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.v1.api import api_router
 from app.core.config import settings
-from app.core.exceptions import http_exception_handler, validation_exception_handler
+from app.core.exceptions import (
+    global_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+)
 from app.db.database import (
     check_mongo_health,
     check_redis_health,
@@ -45,6 +51,7 @@ app = FastAPI(
     exception_handlers={
         StarletteHTTPException: http_exception_handler,
         RequestValidationError: validation_exception_handler,
+        Exception: global_exception_handler,
     }
 )
 
@@ -72,6 +79,11 @@ elif settings.BACKEND_CORS_ORIGINS:
 
 # Add Request ID middleware for tracing
 app.add_middleware(RequestIDMiddleware)
+
+# Mount static files for serving course images
+static_dir = os.path.join(os.getcwd(), "static")
+os.makedirs(static_dir, exist_ok=True)
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 

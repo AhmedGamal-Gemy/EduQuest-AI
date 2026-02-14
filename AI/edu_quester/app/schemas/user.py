@@ -1,7 +1,7 @@
 import uuid
 
 from fastapi_users import schemas
-from pydantic import field_validator
+from pydantic import BaseModel, field_validator
 
 from app.core.config import settings
 from app.core.enums import UserRole
@@ -61,13 +61,7 @@ class AdminUserUpdate(UserUpdate):
     role: UserRole | None = None
 
 
-class UserRegisterResponse(UserRead):
-    """Response schema for successful registration including JWT token."""
+class BearerResponse(BaseModel):
+    """Response schema for login/register including ONLY the JWT token."""
     access_token: str
     token_type: str = "bearer"
-
-
-class BearerResponseWithUserId(UserRead):
-    """Response schema for login including user data and JWT token."""
-    access_token: str
-    token_type: str
