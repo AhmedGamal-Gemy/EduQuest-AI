@@ -1,12 +1,9 @@
 import 'package:eduquest_ai/core/helper/constants.dart';
-import 'package:eduquest_ai/core/networking/api_constants.dart';
 import 'package:eduquest_ai/features/auth/data/models/login_request_body.dart';
 import 'package:eduquest_ai/features/auth/data/models/signup_request_body.dart';
-import 'package:eduquest_ai/features/auth/ui/choose_role_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:eduquest_ai/core/helper/shared_pref_helper.dart';
-import 'package:eduquest_ai/core/networking/dio_factory.dart';
 import 'package:eduquest_ai/features/auth/data/repos/auth_repo.dart';
 import 'package:eduquest_ai/features/auth/logic/auth_states.dart';
 
@@ -38,10 +35,10 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthState.authToggleAuthType(authType: authType)); // Pass authType in the state
   }
 
-  UserRole selectedRole = UserRole.instructor;
+  Role selectedRole = Role.instructor;
 
   void authSelectedRole() {
-    selectedRole = selectedRole == UserRole.instructor ? UserRole.student : UserRole.instructor;
+    selectedRole = selectedRole == Role.instructor ? Role.student : Role.instructor;
     emit(AuthState.authSelectedRole(selectedRole: selectedRole)); // Pass authType in the state
   }
 

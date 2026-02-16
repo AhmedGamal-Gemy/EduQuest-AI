@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:eduquest_ai/features/course/data/models/course_response.dart';
 import 'package:eduquest_ai/core/networking/api_constants.dart';
-import 'package:eduquest_ai/features/auth/data/models/login_request_body.dart';
 import 'package:eduquest_ai/features/auth/data/models/login_response.dart';
 import 'package:eduquest_ai/features/auth/data/models/signup_request_body.dart';
 import 'package:eduquest_ai/features/auth/data/models/signup_response.dart';
+import 'package:eduquest_ai/features/course/data/models/course_request_body.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'api_service.g.dart';
@@ -18,6 +19,7 @@ abstract class ApiService {
     @Field("username") String username,
     @Field("password") String password,
   );
+
   // @POST(ApiConstants.login)
   // Future<LoginResponse> login(
   //   @Body() LoginRequestBody loginRequestBody,
@@ -33,4 +35,34 @@ abstract class ApiService {
 
   // @GET("https://jsonplaceholder.typicode.com/todos/")
   // Future<void> todos();
+
+  //! courses ----------------------------------------------
+  @GET(ApiConstants.courses)
+  Future<List<CourseResponse>> getListCourses();
+
+  @POST(ApiConstants.courses)
+  Future<CourseResponse> createCourse(
+    @Body() CourseRequestBody course,
+  );
+
+  @GET(ApiConstants.courses)
+  Future<CourseResponse> getCourse(
+    @Path('course_id') String courseId,
+  );
+
+  @PATCH(ApiConstants.courses)
+  Future<CourseResponse> updateCourse(
+    @Path('course_id') String courseId,
+    @Body() CourseRequestBody body,
+  );
+
+  @DELETE(ApiConstants.courses)
+  Future<void> deleteCourse(
+    @Path('course_id') String courseId,
+  );
+
+  @POST(ApiConstants.enrollCourse)
+  Future<CourseResponse> enrollInCourse(
+    @Path('course_id') String courseId,
+  );
 }

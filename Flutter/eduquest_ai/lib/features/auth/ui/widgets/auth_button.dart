@@ -1,5 +1,4 @@
 import 'package:eduquest_ai/core/helper/constants.dart';
-import 'package:eduquest_ai/core/helper/function_helper.dart';
 import 'package:eduquest_ai/core/routing/routes.dart';
 import 'package:eduquest_ai/core/theme/app_colors.dart';
 import 'package:eduquest_ai/features/auth/logic/auth_cubit.dart';
@@ -14,15 +13,28 @@ class AuthButtonBlocConsumer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authCubit = BlocProvider.of<AuthCubit>(context);
+    Future<void> checkUserAndNavigate2(context, String role) async {
+      await Future.delayed(const Duration(seconds: 2));
+      // final String? userRole = await SharedPrefHelper.getString(SharedPrefKeys.userRole);
+      // debugPrint("userRole: $userRole: ${userRole == null}.... role is null");
+      // if (!mounted) return;
+
+      if (role == Role.instructor.name) {
+        Navigator.pushReplacementNamed(context, Routes.appNavigationBar, arguments: Role.instructor);
+      } else {
+        Navigator.pushReplacementNamed(context, Routes.appNavigationBar, arguments: Role.student);
+      }
+    }
 
     return BlocConsumer<AuthCubit, AuthState>(
       bloc: authCubit,
       listener: (context, state) {
         state.whenOrNull(
           authAuthenticated: (token, role) {
-            authCubit.clearForm();
+            debugPrint("authAuthenticated");
+            // authCubit.clearForm();
             // Navigator.pushReplacementNamed(context, Routes.chooseRole);
-            checkUserAndNavigate(context);
+            checkUserAndNavigate2(context, role);
           },
         );
       },
@@ -54,17 +66,18 @@ class AuthButtonBlocConsumer extends StatelessWidget {
             ),
             if (errorMessage != null) ...[
               const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.center,
+              Center(
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Icon(Icons.error, color: Colors.redAccent),
                     const SizedBox(width: 4),
-                    Expanded(
+                    Flexible(
                       child: Text(
                         errorMessage,
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.error,
                           fontWeight: FontWeight.w500,

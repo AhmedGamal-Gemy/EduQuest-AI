@@ -1,11 +1,12 @@
+import 'package:eduquest_ai/core/helper/constants.dart';
 import 'package:eduquest_ai/core/routing/routes.dart';
 import 'package:eduquest_ai/dependency_injection.dart';
 import 'package:eduquest_ai/features/auth/logic/auth_cubit.dart';
 import 'package:eduquest_ai/features/auth/ui/auth_page.dart';
-import 'package:eduquest_ai/features/auth/ui/choose_role_page.dart';
 import 'package:eduquest_ai/features/auth/ui/splash_page.dart';
-import 'package:eduquest_ai/features/instructor/ui/instructor_navbar.dart';
-import 'package:eduquest_ai/features/student/student_navbar.dart';
+// import 'package:eduquest_ai/features/course/ui/instructor_course_page.dart';
+// import 'package:eduquest_ai/features/course/ui/student_course_page.dart';
+import 'package:eduquest_ai/app_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -31,21 +32,26 @@ class AppRouter {
           ),
         );
 
-      case Routes.chooseRole:
+      // case Routes.chooseRole:
+      //   return MaterialPageRoute(
+      //     builder: (_) => const ChooseRolePage(),
+      //   );
+
+      case Routes.appNavigationBar:
+        final role = settings.arguments as Role;
         return MaterialPageRoute(
-          builder: (_) => const ChooseRolePage(),
+          builder: (_) => AppNavigationBar(role: role),
         );
 
-      case Routes.instructorNavbar:
-        return MaterialPageRoute(
-          builder: (_) => const InstructorNavbar(),
-        );
-      case Routes.studentNavbar:
-        return MaterialPageRoute(
-          builder: (_) => const StudentNavbar(),
-        );
       default:
         return null; //Todo: 404_page.... from
     }
   }
 }
+/*
+Navigator.pushNamed(
+  context,
+  Routes.instructorNavbar,
+  arguments: Role.instructor, // <-- pass the Role here
+);
+ */

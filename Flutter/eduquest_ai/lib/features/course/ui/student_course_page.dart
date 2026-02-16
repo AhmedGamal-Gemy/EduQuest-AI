@@ -1,55 +1,53 @@
 import 'package:eduquest_ai/core/common/widgets/app_glass_card.dart';
+import 'package:eduquest_ai/features/course/ui/instructor_course_page.dart';
 import 'package:flutter/material.dart';
 
-class StudentNavbar extends StatelessWidget {
-  const StudentNavbar({super.key});
+class StudentCoursePage extends StatelessWidget {
+  const StudentCoursePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: const Color(0xFFF8F2F7),
-      // appBar: AppBar(
-      //   elevation: 0,
-      //   backgroundColor: Colors.white,
-      //   title: Row(
-      //     children: [
-      //       const CircleAvatar(
-      //         radius: 16,
-      //         backgroundColor: Color(0xFF8A2EFF),
-      //         child: Icon(Icons.auto_awesome, color: Colors.white, size: 18),
-      //       ),
-      //       const SizedBox(width: 8),
-      //       Column(
-      //         crossAxisAlignment: CrossAxisAlignment.start,
-      //         children: const [
-      //           Text(
-      //             'EduAI Assistant',
-      //             style: TextStyle(
-      //               fontSize: 14,
-      //               fontWeight: FontWeight.bold,
-      //               color: Colors.black,
-      //             ),
-      //           ),
-      //           Text(
-      //             'Student Dashboard',
-      //             style: TextStyle(fontSize: 11, color: Colors.grey),
-      //           ),
-      //         ],
-      //       ),
-      //     ],
-      //   ),
-      //   actions: [
-      //     _Badge(label: 'Student'),
-      //     const SizedBox(width: 6),
-      //     _Badge(label: 'Level 1', icon: Icons.emoji_events),
-      //     const SizedBox(width: 6),
-      //     TextButton.icon(
-      //       onPressed: () {},
-      //       icon: const Icon(Icons.logout, size: 18),
-      //       label: const Text('Sign Out'),
-      //     ),
-      //   ],
-      // ),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            const CircleAvatar(
+              radius: 16,
+              backgroundColor: Color(0xFF8A2EFF),
+              child: Icon(Icons.auto_awesome, color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'EduAI Assistant',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    // color: Colors.black,
+                  ),
+                ),
+                Text(
+                  'Student Dashboard',
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          // _Badge(label: 'Student'),
+          const SizedBox(width: 6),
+          // _Badge(label: 'Level 1', icon: Icons.emoji_events),
+          const SizedBox(width: 6),
+          TextButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.logout, size: 18),
+            label: const Text('Sign Out'),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -115,50 +113,8 @@ class StudentNavbar extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            /// Empty State
-            AppGlassCard(
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.menu_book_outlined,
-                    size: 48,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'No courses enrolled',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Join a course to start learning with AI-powered support',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.search),
-                      label: const Text('Join Your First Course'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF8A2EFF),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            CoursesGridBlocBuilder(isStudent: true),
+            const SizedBox(height: 12),],
         ),
       ),
     );

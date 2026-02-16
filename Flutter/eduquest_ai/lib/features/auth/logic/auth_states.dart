@@ -1,5 +1,4 @@
 import 'package:eduquest_ai/core/helper/constants.dart';
-import 'package:eduquest_ai/features/auth/ui/choose_role_page.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'auth_states.freezed.dart';
@@ -13,7 +12,7 @@ class AuthState with _$AuthState {
   }) = AuthToggleAuthType;
 
   const factory AuthState.authSelectedRole({
-    required UserRole selectedRole,
+    required Role selectedRole,
   }) = AuthSelectedRole;
 
   const factory AuthState.authAuthenticated({

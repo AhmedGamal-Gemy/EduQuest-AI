@@ -28,7 +28,7 @@ class AuthHeader extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
         ),
-        const SizedBox(height: 96),
+        const SizedBox(height: 64),
       ],
     );
   }

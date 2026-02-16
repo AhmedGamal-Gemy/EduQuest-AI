@@ -7,6 +7,6 @@ class Routes {
   static const String homeScreen = '/homeScreen';
   static const String chooseRole = '/chooseRole';
 
-  static const String instructorNavbar = '/instructorNavbar';
-  static const String studentNavbar = '/studentNavbar';
+  static const String appNavigationBar = '/appNavigationBar';
+  // static const String studentNavbar = '/studentNavbar';
 }
