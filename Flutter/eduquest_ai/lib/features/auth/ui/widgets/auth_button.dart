@@ -1,6 +1,5 @@
 import 'package:eduquest_ai/core/helper/constants.dart';
 import 'package:eduquest_ai/core/helper/function_helper.dart';
-import 'package:eduquest_ai/core/routing/routes.dart';
 import 'package:eduquest_ai/core/theme/app_colors.dart';
 import 'package:eduquest_ai/features/auth/logic/auth_cubit.dart';
 import 'package:eduquest_ai/features/auth/logic/auth_states.dart';

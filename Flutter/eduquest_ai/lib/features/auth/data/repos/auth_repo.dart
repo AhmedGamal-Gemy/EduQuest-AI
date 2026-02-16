@@ -60,3 +60,24 @@ class AuthRepo {
     }
 
  */
+/*
+    {
+  "sub": "b3e19933-aac5-47ba-8d84-a9aaeca1579e",
+  "email": "ayhb756_ins@gmail.com",
+  "role": "student",
+  "first_name": "Aya",
+  "last_name": "Abd elmomeim",
+  "aud": [
+    "fastapi-users:auth"
+  ],
+  "exp": 1771734441
+}
+
+ */
+/*
+    ! Error 
+    {
+      "detail": "Invalid password"
+    }
+
+ */

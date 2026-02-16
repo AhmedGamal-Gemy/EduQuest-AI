@@ -1,7 +1,8 @@
 import 'package:eduquest_ai/core/helper/constants.dart';
-import 'package:eduquest_ai/core/routing/app_router.dart';
-import 'package:eduquest_ai/core/routing/routes.dart';
+// import 'package:eduquest_ai/core/routing/app_router.dart';
+// import 'package:eduquest_ai/core/routing/routes.dart';
 import 'package:eduquest_ai/core/theme/app_themes.dart';
+import 'package:eduquest_ai/features/chat/ui/chat_page.dart';
 import 'package:flutter/material.dart';
 
 class EduQuestAIApp extends StatelessWidget {
@@ -13,9 +14,9 @@ class EduQuestAIApp extends StatelessWidget {
       title: Constants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppThemes.darkTheme,
-      onGenerateRoute: AppRouter.generateRoute,
-      initialRoute: Routes.splashScreen,
-      // home: StudentNavbar(),
+      // onGenerateRoute: AppRouter.generateRoute,
+      // initialRoute: Routes.splashScreen,
+      home: ChatPage(),
     );
   }
 }

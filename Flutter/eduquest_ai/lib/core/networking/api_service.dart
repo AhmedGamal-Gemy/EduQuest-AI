@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:eduquest_ai/core/networking/api_constants.dart';
-import 'package:eduquest_ai/features/auth/data/models/login_request_body.dart';
 import 'package:eduquest_ai/features/auth/data/models/login_response.dart';
 import 'package:eduquest_ai/features/auth/data/models/signup_request_body.dart';
 import 'package:eduquest_ai/features/auth/data/models/signup_response.dart';

@@ -1,9 +1,6 @@
 import 'package:eduquest_ai/core/common/widgets/app_logo.dart';
 import 'package:eduquest_ai/core/helper/constants.dart';
 import 'package:eduquest_ai/core/helper/function_helper.dart';
-import 'package:eduquest_ai/core/helper/shared_pref_helper.dart';
-import 'package:eduquest_ai/core/networking/api_constants.dart';
-import 'package:eduquest_ai/core/routing/routes.dart';
 import 'package:eduquest_ai/core/theme/app_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
