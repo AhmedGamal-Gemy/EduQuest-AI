@@ -5,6 +5,58 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-02-08
+### Added
+- **Security**:
+  - Password validation: minimum length, requires digit and uppercase letter
+  - `AdminUserUpdate` schema for superuser-only role changes
+  - Admin endpoint `PATCH /students/{id}/admin` for role modifications
+  - Rate limiting on course creation (10 requests/minute)
+  - Chat message input validation (max 10,000 characters)
+- **Infrastructure**:
+  - `close_db()` and `close_redis()` shutdown functions
+  - Proper database connection cleanup in application lifespan
+
+### Changed
+- **Security**:
+  - Removed `role` field from `UserUpdate` to prevent privilege escalation
+  - Fixed route ordering in `students.py` (`/me` routes now before `/{id}`)
+- **Code Quality**:
+  - Fixed all 26 Ruff lint errors (W293, B904, F401)
+  - Standardized exception chaining with `raise ... from err`
+  - Removed unused `fastapi_users` import
+  - OpenAPI server URL now uses `settings.PORT`
+  - Standardized error detail codes (e.g., `USER_NOT_FOUND`)
+- **Infrastructure**:
+  - Removed unused `motor` dependency
+  - Standardized ports to 8001 in Makefile and Dockerfile
+  - Removed debug print statements from test fixtures
+
+## [0.4.0] - 2026-02-07
+### Added
+- **Security**:
+  - Production SECRET_KEY validation - app fails to start if default key used in prod/staging
+  - Request ID middleware for distributed tracing (`X-Request-ID` header)
+- **Features**:
+  - `CourseService`: Service layer for course business logic with dependency injection
+  - `Pagination`: Course listing now supports `limit` and `offset` query parameters
+  - `Unenroll`: New endpoint `DELETE /courses/{id}/enroll` for student unenrollment
+  - `Published Check`: Students can only enroll in published courses
+  - `Health Checks`: Enhanced `/health` endpoint with MongoDB and Redis connectivity status
+- **Infrastructure**:
+  - Production-ready multi-stage Dockerfile with non-root user
+  - Docker health check configuration
+- **Configuration**:
+  - `MIN_PASSWORD_LENGTH` setting for password policy
+  - `DEFAULT_PAGE_LIMIT` and `MAX_PAGE_LIMIT` pagination settings
+
+### Changed
+- **Code Quality**:
+  - Fixed import order in `main.py` (moved `get_openapi` to module level)
+  - Fixed inline imports in `auth.py` (moved to module level)
+  - Replaced debug print statements with proper logging in `database.py`
+  - Extracted business logic from `courses.py` into `CourseService`
+
 ## [0.3.0] - 2026-02-06
 ### Added
 - **Features**:

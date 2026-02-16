@@ -1,36 +1,45 @@
 """
 Model execution callbacks (LLM Request/Response).
 """
-from typing import Optional
-from google.adk.agents.callback_context import CallbackContext
-from google.adk.models import LlmResponse, LlmRequest
 
-from inspect_web.handlers.logger import logger
-from inspect_web.session.scan_session import ScanSession
-from inspect_web.utils.rate_limiter import rate_limiter
-from inspect_web.handlers.model_utils import (
-    extract_model_from_request,
-    _safe_get_attr,
-    model_tracker
-)
-from inspect_web.handlers.log_utils import extract_parts_safe, log_part_safe, _debug_log, get_emoji
+from google.adk.agents.callback_context import CallbackContext
+from google.adk.models import LlmRequest, LlmResponse
 
 # Import Hallucination Buster
-from inspect_web.handlers.hallucination_buster import correct_hallucination, get_valid_tools, extract_tool_call_from_json
+from inspect_web.handlers.hallucination_buster import (
+    correct_hallucination,
+    extract_tool_call_from_json,
+    get_valid_tools,
+)
+from inspect_web.handlers.log_utils import (
+    _debug_log,
+    extract_parts_safe,
+    get_emoji,
+    log_part_safe,
+)
+from inspect_web.handlers.logger import logger
+from inspect_web.handlers.model_utils import (
+    _safe_get_attr,
+    extract_model_from_request,
+    model_tracker,
+)
+from inspect_web.session.scan_session import ScanSession
+from inspect_web.utils.rate_limiter import rate_limiter
+
 
 def before_model_callback(
-    callback_context: CallbackContext, 
+    callback_context: CallbackContext,
     llm_request: LlmRequest
-) -> Optional[LlmResponse]:
+) -> LlmResponse | None:
     """Called before LLM request - detect model and enforce rate limiting."""
     agent_name = "Unknown"
-    
+
     try:
         agent_name = _safe_get_attr(callback_context, 'agent_name', 'Unknown') or 'Unknown'
         agent_log = logger.bind(author=agent_name)
         session = ScanSession.get_current()
-        
-        
+
+
         # RATE LIMITING
         try:
             wait_time = rate_limiter.wait_if_needed()
@@ -38,7 +47,7 @@ def before_model_callback(
                 agent_log.debug(f"⏳ Rate limit: waited {wait_time:.2f}s before LLM request")
         except Exception as e:
             agent_log.debug(f"Rate limiter error (non-blocking): {e}")
-        
+
         # CONTEXT TRUNCATION (with Mistral message ordering awareness)
         try:
             contents = _safe_get_attr(llm_request, 'contents')
@@ -47,19 +56,19 @@ def before_model_callback(
                 from inspect_web.config import settings as Config
                 MAX_MESSAGES = Config.MAX_CONTEXT_MESSAGES
                 MIN_MESSAGES_TO_TRUNCATE = Config.MIN_MESSAGES_TO_TRUNCATE
-                
+
                 num_messages = len(contents)
-                
+
                 if num_messages > MIN_MESSAGES_TO_TRUNCATE:
                     first_message = contents[0]
-                    
+
                     # Calculate the cut point
                     cut_index = num_messages - (MAX_MESSAGES - 1)
-                    
+
                     # Mistral requires: user → assistant → tool sequence
                     # We need to find a safe cut point that doesn't leave orphaned tool results
                     # A safe cut point is right before a 'user' message
-                    
+
                     # Scan forward from cut_index to find a 'user' message
                     safe_cut_index = cut_index
                     for i in range(cut_index, min(cut_index + 5, num_messages)):
@@ -69,16 +78,16 @@ def before_model_callback(
                             msg_role = str(msg.role).lower() if msg.role else None
                         elif isinstance(msg, dict):
                             msg_role = msg.get('role', '').lower()
-                        
+
                         if msg_role == 'user':
                             safe_cut_index = i
                             break
-                    
+
                     recent_messages = contents[safe_cut_index:]
-                    
+
                     # Mutate the list in place
                     llm_request.contents = [first_message] + recent_messages
-                    
+
                     final_count = len(llm_request.contents)
                     removed_count = num_messages - final_count
                     agent_log.warning(
@@ -87,17 +96,17 @@ def before_model_callback(
                     )
         except Exception as e:
             agent_log.debug(f"Context truncation error (non-blocking): {e}")
-        
+
         # =====================================================================
         # MISTRAL MESSAGE ORDERING FIX (ALWAYS runs)
         # Mistral requires: user → assistant(tool_call) → tool(result)
         # It cannot handle user → tool directly.
-        # 
+        #
         # ROOT CAUSE (confirmed via research):
         # When ADK's AgentTool invokes a sub-agent, the parent's conversation
         # history gets passed down. Tool results from the PARENT appear after
         # the "user" message (the AgentTool invocation) in the CHILD's context.
-        # 
+        #
         # Solution: Skip these orphaned tool results. They're from the parent's
         # context and not relevant to the child agent's execution.
         # =====================================================================
@@ -108,7 +117,7 @@ def before_model_callback(
                 skipped_count = 0
                 skipped_tools = []
                 prev_role = None
-                
+
                 for msg in contents:
                     # Get role from message
                     msg_role = None
@@ -116,7 +125,7 @@ def before_model_callback(
                         msg_role = str(msg.role).lower() if msg.role else None
                     elif isinstance(msg, dict):
                         msg_role = msg.get('role', '').lower()
-                    
+
                     # Check if this message contains tool/function responses
                     is_tool_result = False
                     tool_name = None
@@ -137,7 +146,7 @@ def before_model_callback(
                             elif isinstance(func_resp, dict):
                                 tool_name = func_resp.get('name', 'unknown')
                             break
-                    
+
                     # Mistral error: "Unexpected role 'tool' after role 'user'"
                     # Skip tool messages that come directly after user messages
                     if is_tool_result and prev_role == 'user':
@@ -145,14 +154,14 @@ def before_model_callback(
                         if tool_name:
                             skipped_tools.append(tool_name)
                         continue  # Skip this message
-                    
+
                     fixed_contents.append(msg)
                     # Track role for next iteration
                     if msg_role:
                         prev_role = msg_role
                     elif is_tool_result:
                         prev_role = 'tool'
-                
+
                 if skipped_count > 0:
                     llm_request.contents = fixed_contents
                     tools_info = f" ({', '.join(skipped_tools[:3])}{'...' if len(skipped_tools) > 3 else ''})" if skipped_tools else ""
@@ -161,21 +170,21 @@ def before_model_callback(
                     )
         except Exception as e:
             agent_log.debug(f"Message ordering fix error (non-blocking): {e}")
-        
+
         # =====================================================================
         # MISTRAL FUNCTION CALL/RESPONSE PAIRING FIX (AGGRESSIVE)
         # Error: "Not the same number of function calls and responses"
-        # 
+        #
         # ROOT CAUSE (discovered via debugging):
         # When Commander calls SQLiAgent multiple times, each AgentTool invocation
         # returns a function_response. But the NEXT LLM call sees all previous
         # function_calls from earlier turns without their responses in immediate
         # adjacent messages. Mistral requires strict 1:1 pairing.
-        # 
+        #
         # SOLUTION: For each function_call, we must either:
         # 1. Have a function_response in the IMMEDIATELY following message, OR
         # 2. Remove the orphaned function_call message entirely
-        # 
+        #
         # This is aggressive but necessary for Mistral compatibility.
         # =====================================================================
         try:
@@ -185,21 +194,21 @@ def before_model_callback(
                 # Function calls are in assistant messages, responses in tool messages
                 call_to_response = {}  # call_idx -> response_idx
                 response_to_call = {}  # response_idx -> call_idx
-                
+
                 # Track function calls by their index and name
                 call_info = {}  # idx -> {names: [...], ids: [...]}
                 response_info = {}  # idx -> {names: [...], ids: [...]}
-                
+
                 for idx, msg in enumerate(contents):
                     parts = _safe_get_attr(msg, 'parts', []) or []
                     if not parts and isinstance(msg, dict):
                         parts = msg.get('parts', [])
-                    
+
                     call_names = []
                     call_ids = []
                     resp_names = []
                     resp_ids = []
-                    
+
                     for part in parts:
                         # Check for function_call in assistant messages
                         func_call = None
@@ -207,7 +216,7 @@ def before_model_callback(
                             func_call = part.function_call
                         elif isinstance(part, dict) and 'function_call' in part:
                             func_call = part.get('function_call')
-                        
+
                         if func_call:
                             name = getattr(func_call, 'name', None)
                             if not name and isinstance(func_call, dict):
@@ -219,14 +228,14 @@ def before_model_callback(
                                 call_names.append(name)
                             if call_id:
                                 call_ids.append(call_id)
-                        
+
                         # Check for function_response in tool messages
                         func_resp = None
                         if hasattr(part, 'function_response'):
                             func_resp = part.function_response
                         elif isinstance(part, dict) and 'function_response' in part:
                             func_resp = part.get('function_response')
-                        
+
                         if func_resp:
                             name = getattr(func_resp, 'name', None)
                             if not name and isinstance(func_resp, dict):
@@ -238,12 +247,12 @@ def before_model_callback(
                                 resp_names.append(name)
                             if resp_id:
                                 resp_ids.append(resp_id)
-                    
+
                     if call_names or call_ids:
                         call_info[idx] = {'names': call_names, 'ids': call_ids}
                     if resp_names or resp_ids:
                         response_info[idx] = {'names': resp_names, 'ids': resp_ids}
-                
+
                 # Pass 2: Match calls to responses (response should be at idx+1 ideally, or nearby)
                 for call_idx, ci in call_info.items():
                     # Look for response in next few messages
@@ -261,34 +270,35 @@ def before_model_callback(
                                     break
                             elif ci['names'] and ri['names']:
                                 if set(ci['names']) & set(ri['names']):  # Any overlap
-                                    found_response = True
+                                    # found_response = True
+
                                     call_to_response[call_idx] = resp_idx
                                     response_to_call[resp_idx] = call_idx
                                     break
-                    
+
                 # Pass 3: Remove orphaned calls and their responses (except the most recent pair)
                 # Keep only messages that are:
                 # - Not function calls without responses
                 # - Not function responses without calls
                 # - Or are the most recent pending call (we're about to respond to it)
-                
+
                 indices_to_remove = set()
-                
+
                 # Find orphaned calls (no response found)
                 orphaned_calls = [idx for idx in call_info.keys() if idx not in call_to_response]
                 # Find orphaned responses (no call found)
                 orphaned_responses = [idx for idx in response_info.keys() if idx not in response_to_call]
-                
+
                 # Keep the LAST orphaned call (it's the one we're responding to now)
                 if orphaned_calls:
                     last_orphan_call = max(orphaned_calls)
                     for oc in orphaned_calls:
                         if oc != last_orphan_call:
                             indices_to_remove.add(oc)
-                
+
                 # Remove all orphaned responses
                 indices_to_remove.update(orphaned_responses)
-                
+
                 if indices_to_remove:
                     new_contents = [msg for idx, msg in enumerate(contents) if idx not in indices_to_remove]
                     llm_request.contents = new_contents
@@ -299,54 +309,54 @@ def before_model_callback(
                     )
         except Exception as e:
             agent_log.debug(f"Function call pairing fix error (non-blocking): {e}")
-        
+
         # =====================================================================
         # MISTRAL TOOL_CALL ID GENERATION
         # Error: "Tool call id has to be defined" / "Input should be a valid string"
-        # 
+        #
         # Mistral requires ALL function_calls to have a valid ID:
         # - Exactly 9 characters (per Mistral spec)
         # - Alphanumeric only (a-z, A-Z, 0-9)
-        # 
+        #
         # ADK's google.genai types DON'T have ID fields - they're only added
         # during LiteLLM's conversion. But LiteLLM isn't generating them properly.
-        # 
+        #
         # Solution: Generate compliant 9-char alphanumeric IDs for any function_call
         # missing an ID. This matches LiteLLM's MistralWrapper pattern.
         # =====================================================================
         try:
             import random
             import string
-            
+
             contents = _safe_get_attr(llm_request, 'contents')
             if contents and isinstance(contents, list):
-                
+
                 def generate_mistral_id():
                     """Generate a Mistral-compliant 9-character alphanumeric ID"""
                     chars = string.ascii_letters + string.digits  # a-z, A-Z, 0-9
                     return ''.join(random.choices(chars, k=9))
-                
+
                 def is_valid_mistral_id(call_id):
                     """Check if ID meets Mistral's requirements"""
                     if not call_id or not isinstance(call_id, str):
                         return False
                     import re
                     return bool(re.match(r'^[a-zA-Z0-9]{9}$', call_id))
-                
+
                 fixed_count = 0
-                
+
                 for msg in contents:
                     parts = _safe_get_attr(msg, 'parts', []) or []
                     if not parts and isinstance(msg, dict):
                         parts = msg.get('parts', [])
-                    
+
                     for part in parts:
                         func_call = None
                         if hasattr(part, 'function_call'):
                             func_call = part.function_call
                         elif isinstance(part, dict) and 'function_call' in part:
                             func_call = part.get('function_call')
-                        
+
                         if func_call:
                             # Check current ID
                             call_id = None
@@ -354,7 +364,7 @@ def before_model_callback(
                                 call_id = func_call.id
                             elif isinstance(func_call, dict):
                                 call_id = func_call.get('id')
-                            
+
                             if not is_valid_mistral_id(call_id):
                                 new_id = generate_mistral_id()
                                 try:
@@ -371,19 +381,19 @@ def before_model_callback(
                                         fixed_count += 1
                                 except (AttributeError, TypeError):
                                     # Object is truly immutable, log and continue
-                                    agent_log.debug(f"Cannot set ID on immutable function_call object")
-                
+                                    agent_log.debug("Cannot set ID on immutable function_call object")
+
                 if fixed_count > 0:
                     agent_log.warning(
                         f"🔧 Mistral fix: Generated {fixed_count} compliant 9-char tool_call ID(s)"
                     )
         except Exception as e:
             agent_log.debug(f"Tool call ID generation error (non-blocking): {e}")
-        
+
         # =====================================================================
         # MISTRAL FUNCTION_RESPONSE ID SYNCHRONIZATION
         # Error: "Unexpected tool call id None in tool results"
-        # 
+        #
         # When function_responses have None IDs, we need to match them to their
         # corresponding function_calls and copy the ID. We match by name since
         # the ID is generated after the original call was made.
@@ -396,33 +406,33 @@ def before_model_callback(
                 # - all_call_ids: for detecting orphaned responses with unknown IDs
                 call_name_to_id = {}
                 all_call_ids = set()  # Track ALL function_call IDs in the context
-                
+
                 for msg in contents:
                     parts = _safe_get_attr(msg, 'parts', []) or []
                     if not parts and isinstance(msg, dict):
                         parts = msg.get('parts', [])
-                    
+
                     for part in parts:
                         func_call = None
                         if hasattr(part, 'function_call'):
                             func_call = part.function_call
                         elif isinstance(part, dict) and 'function_call' in part:
                             func_call = part.get('function_call')
-                        
+
                         if func_call:
                             call_name = getattr(func_call, 'name', None)
                             if not call_name and isinstance(func_call, dict):
                                 call_name = func_call.get('name')
-                            
+
                             call_id = getattr(func_call, 'id', None)
                             if not call_id and isinstance(func_call, dict):
                                 call_id = func_call.get('id')
-                            
+
                             if call_id:
                                 all_call_ids.add(call_id)  # Track ALL IDs
                             if call_name and call_id:
                                 call_name_to_id[call_name] = call_id  # For response sync
-                
+
                 # Also collect all response IDs for diagnostic
                 all_response_ids = set()
                 for msg in contents:
@@ -441,42 +451,42 @@ def before_model_callback(
                                 resp_id = func_resp.get('id')
                             if resp_id:
                                 all_response_ids.add(resp_id)
-                
+
                 # Find orphaned response IDs (IDs in responses but not in calls)
                 orphaned_ids = all_response_ids - all_call_ids
                 if orphaned_ids:
-                    agent_log.error(f"� MISTRAL ID MISMATCH DETECTED!")
+                    agent_log.error("� MISTRAL ID MISMATCH DETECTED!")
                     agent_log.error(f"   Call IDs:     {sorted(all_call_ids)[:5]}... ({len(all_call_ids)} total)")
                     agent_log.error(f"   Response IDs: {sorted(all_response_ids)[:5]}... ({len(all_response_ids)} total)")
                     agent_log.error(f"   Orphaned:     {orphaned_ids}")
                 else:
                     agent_log.debug(f"📋 IDs OK: {len(all_call_ids)} calls, {len(all_response_ids)} responses, no orphans")
-                
+
                 # Phase 2: Fix function_responses with None IDs
                 fixed_response_count = 0
                 for msg in contents:
                     parts = _safe_get_attr(msg, 'parts', []) or []
                     if not parts and isinstance(msg, dict):
                         parts = msg.get('parts', [])
-                    
+
                     for part in parts:
                         func_resp = None
                         if hasattr(part, 'function_response'):
                             func_resp = part.function_response
                         elif isinstance(part, dict) and 'function_response' in part:
                             func_resp = part.get('function_response')
-                        
+
                         if func_resp:
                             resp_id = getattr(func_resp, 'id', None)
                             if not resp_id and isinstance(func_resp, dict):
                                 resp_id = func_resp.get('id')
-                            
+
                             # If ID is None, try to find matching call by name
                             if not resp_id:
                                 resp_name = getattr(func_resp, 'name', None)
                                 if not resp_name and isinstance(func_resp, dict):
                                     resp_name = func_resp.get('name')
-                                
+
                                 if resp_name and resp_name in call_name_to_id:
                                     new_id = call_name_to_id[resp_name]
                                     try:
@@ -488,24 +498,24 @@ def before_model_callback(
                                             fixed_response_count += 1
                                     except (AttributeError, TypeError):
                                         pass
-                
+
                 if fixed_response_count > 0:
                     agent_log.warning(
                         f"🔧 Mistral fix: Synchronized {fixed_response_count} function_response ID(s)"
                     )
-                
+
                 # Phase 3: REPAIR orphaned responses (IDs not in any function_call)
                 # Strategy: Try to find a function_call with the SAME NAME and use its ID
                 # Only remove if we can't find ANY matching call (truly orphaned)
                 # This preserves context while fixing "Unexpected tool call id X" errors
                 repaired_count = 0
                 removed_count = 0
-                
+
                 for msg in contents:
                     parts = _safe_get_attr(msg, 'parts', []) or []
                     if not parts and isinstance(msg, dict):
                         parts = msg.get('parts', [])
-                    
+
                     parts_to_remove = []
                     for i, part in enumerate(parts):
                         func_resp = None
@@ -513,16 +523,16 @@ def before_model_callback(
                             func_resp = part.function_response
                         elif isinstance(part, dict) and 'function_response' in part:
                             func_resp = part.get('function_response')
-                        
+
                         if func_resp:
                             resp_id = getattr(func_resp, 'id', None)
                             if not resp_id and isinstance(func_resp, dict):
                                 resp_id = func_resp.get('id')
-                            
+
                             resp_name = getattr(func_resp, 'name', None)
                             if not resp_name and isinstance(func_resp, dict):
                                 resp_name = func_resp.get('name')
-                            
+
                             # If response has an ID that's not in known calls
                             if resp_id and resp_id not in all_call_ids:
                                 # Try to REPAIR by finding a call with the same name
@@ -546,7 +556,7 @@ def before_model_callback(
                                     # No matching call found - truly orphaned, remove
                                     parts_to_remove.append(i)
                                     agent_log.warning(f"🗑️ Orphan (no matching call): {resp_name} with ID {resp_id}")
-                    
+
                     # Remove truly orphaned parts (in reverse order to preserve indices)
                     if parts_to_remove:
                         if isinstance(parts, list):
@@ -556,55 +566,55 @@ def before_model_callback(
                                     removed_count += 1
                                 except Exception:
                                     pass
-                
+
                 if repaired_count > 0:
                     agent_log.success(f"🔧 Mistral fix: Repaired {repaired_count} orphaned response ID(s) (context preserved)")
                 if removed_count > 0:
                     agent_log.warning(f"�️ Mistral fix: Removed {removed_count} truly orphaned response(s) (no matching call)")
         except Exception as e:
             agent_log.debug(f"Function response ID sync error (non-blocking): {e}")
-        
+
         # Try to detect model from request
         model_string = extract_model_from_request(llm_request)
-        
+
         if model_string and model_tracker.update_if_better(agent_name, model_string):
             model_info = model_tracker.get(agent_name)
-            
+
             # Update session with detected model
             if session:
                 session.register_agent_model(agent_name, model_info)
-            
+
             agent_log.info(f"   🔍 Model detected: {model_info.get('provider_display', 'Unknown')} / {model_info.get('model_display', 'Unknown')}")
-        
+
         # NOW write the agent header to markdown (with model info)
         if session and not model_tracker.is_header_written(agent_name):
             model_info = model_tracker.get(agent_name)
             session.log_agent_start_with_model(agent_name, model_info)
             model_tracker.mark_header_written(agent_name)
-        
+
         # Log request info
         model_info = model_tracker.get(agent_name)
         num_messages = len(llm_request.contents) if _safe_get_attr(llm_request, 'contents') else 0
-        
+
         agent_log.info(
             f"   📤 LLM Request going out | Messages: {num_messages}"
         )
-    
+
     except Exception as e:
         try:
             logger.bind(author="system").error(f"Error in before_model_callback: {e}")
         except Exception:
             pass
-    
+
     return None
 
 
 def after_model_callback(
-    callback_context: CallbackContext, 
+    callback_context: CallbackContext,
     llm_response: LlmResponse
 ) -> LlmResponse:
     """Called after LLM response - validate function calls and log content."""
-    
+
     agent_name = "Unknown"
     # Try multiple ways to get agent name from context
     try:
@@ -618,7 +628,7 @@ def after_model_callback(
                 agent_name = state.get('_current_agent', state.get('agent_name', 'Unknown'))
     except Exception:
         pass
-        
+
     agent_log = logger.bind(author=agent_name)
 
     # =====================================================================
@@ -627,8 +637,8 @@ def after_model_callback(
     # agent's tools, not just the global list.
     # =====================================================================
     try:
-        from agent_kit.hallucination import set_agent_context, clear_agent_context
-        
+        from agent_kit.hallucination import clear_agent_context, set_agent_context
+
         # Try to get the agent's actual tools
         agent_tools_names = set()
         if hasattr(callback_context, 'agent') and callback_context.agent:
@@ -645,7 +655,7 @@ def after_model_callback(
                 for sub_agent in agent.sub_agents:
                     if hasattr(sub_agent, 'name'):
                         agent_tools_names.add(sub_agent.name)
-        
+
         if agent_tools_names:
             set_agent_context(agent_name, agent_tools_names)
             agent_log.debug(f"🎯 Agent context set: {len(agent_tools_names)} tools for {agent_name}")
@@ -656,7 +666,7 @@ def after_model_callback(
     text_content = _safe_get_attr(llm_response, 'text')
     if text_content:
         agent_log.info(f"🧠 {agent_name} Thinking:\n{text_content[:500]}...")
-    
+
     # =====================================================================
     # EMPTY RESPONSE DETECTION AND RECOVERY
     # Error: "model output must contain either output text or tool calls"
@@ -667,7 +677,7 @@ def after_model_callback(
         content = _safe_get_attr(llm_response, 'content')
         has_text = False
         has_function_call = False
-        
+
         if content:
             parts = _safe_get_attr(content, 'parts', []) or []
             for part in parts:
@@ -675,32 +685,32 @@ def after_model_callback(
                     has_text = True
                 if _safe_get_attr(part, 'function_call'):
                     has_function_call = True
-        
+
         if not has_text and not has_function_call:
-            agent_log.warning(f"⚠️ EMPTY RESPONSE DETECTED - injecting recovery message")
-            
+            agent_log.warning("⚠️ EMPTY RESPONSE DETECTED - injecting recovery message")
+
             # Get available tools for this agent
             valid_tools = get_valid_tools()
             tools_preview = ', '.join(list(valid_tools)[:8])
-            
+
             # Inject a helpful text response
             from google.genai import types as genai_types
             recovery_text = (
                 f"I need to take an action. Let me review my available tools: {tools_preview}... "
                 f"I will call one of these tools to proceed with the task."
             )
-            
+
             new_part = genai_types.Part(text=recovery_text)
             new_content = genai_types.Content(
                 role='model',
                 parts=[new_part]
             )
             llm_response.content = new_content
-            
-            agent_log.info(f"🔧 Injected recovery message to prevent empty response error")
+
+            agent_log.info("🔧 Injected recovery message to prevent empty response error")
     except Exception as e:
         agent_log.debug(f"Empty response detection error (non-blocking): {e}")
-    
+
     # =====================================================================
     # TEXT TOOL CALL DETECTION
     # Detect when the LLM writes tool calls as text instead of executing them
@@ -711,20 +721,20 @@ def after_model_callback(
             parts = _safe_get_attr(content, 'parts', []) or []
             has_actual_function_call = False
             text_tool_calls_detected = []
-            
+
             for part in parts:
                 # Check if there's an actual function call
                 if _safe_get_attr(part, 'function_call'):
                     has_actual_function_call = True
-                
+
                 # Check text content for tool call patterns
                 text = _safe_get_attr(part, 'text', '')
                 if text:
                     import re
-                    
+
                     # AUTO-DETECT: Build patterns from all valid tools
                     valid_tools = get_valid_tools()
-                    
+
                     # Match any valid tool name followed by parentheses
                     # Pattern: tool_name( ... ) - handles multi-line args and nested parens
                     for tool_name in valid_tools:
@@ -736,18 +746,18 @@ def after_model_callback(
                         matches = re.findall(pattern, text)
                         if matches:
                             text_tool_calls_detected.extend(matches[:2])  # Limit to 2 per tool
-            
+
             # If we detected text tool calls but no actual function calls, TRY TO INJECT THEM
             if text_tool_calls_detected and not has_actual_function_call:
                 preview = ', '.join(text_tool_calls_detected[:3])
                 agent_log.warning(
                     f"⚠️ TEXT TOOL CALLS DETECTED (attempting injection): {preview}"
                 )
-                
+
                 # Try to parse and inject function calls
                 injected_calls = []
                 from google.genai import types as genai_types
-                
+
                 for text_call in text_tool_calls_detected[:3]:  # Limit to first 3
                     try:
                         # Parse tool_name(args)
@@ -755,7 +765,7 @@ def after_model_callback(
                         if match:
                             tool_name = match.group(1)
                             args_str = match.group(2)
-                            
+
                             # Parse arguments - handle key=value format
                             args_dict = {}
                             if args_str.strip():
@@ -772,7 +782,7 @@ def after_model_callback(
                                             args_dict[key] = json.loads(value)
                                         except (json.JSONDecodeError, TypeError):
                                             args_dict[key] = value
-                            
+
                             # Check if this is a valid tool
                             valid_tools = get_valid_tools()
                             if tool_name in valid_tools:
@@ -787,7 +797,7 @@ def after_model_callback(
                                 agent_log.warning(f"⚠️ Tool '{tool_name}' not in valid tools, skipping injection")
                     except Exception as parse_error:
                         agent_log.debug(f"Failed to parse text call '{text_call[:50]}': {parse_error}")
-                
+
                 # If we successfully parsed any calls, inject them into the response
                 if injected_calls:
                     try:
@@ -795,19 +805,19 @@ def after_model_callback(
                         content = _safe_get_attr(llm_response, 'content')
                         if content:
                             existing_parts = list(_safe_get_attr(content, 'parts', []) or [])
-                            
+
                             # Add new FunctionCall parts
                             for func_call in injected_calls:
                                 new_part = genai_types.Part(function_call=func_call)
                                 existing_parts.append(new_part)
-                            
+
                             # Create new content with injected calls
                             new_content = genai_types.Content(
                                 role=content.role if hasattr(content, 'role') else 'model',
                                 parts=existing_parts
                             )
                             llm_response.content = new_content
-                            
+
                             agent_log.success(
                                 f"🛡️ HALLUCINATION BUSTER: Injected {len(injected_calls)} function call(s) from text"
                             )
@@ -830,24 +840,24 @@ def after_model_callback(
     # create NEW objects and rebuild the entire Content.
     # =========================================================================
     content = _safe_get_attr(llm_response, 'content')
-    
+
     if content:
         parts = list(_safe_get_attr(content, 'parts', []) or [])
         corrections_needed = []  # Track which parts need replacement
-        
+
         for idx, part in enumerate(parts):
             function_call = _safe_get_attr(part, 'function_call')
             if function_call:
                 original_name = _safe_get_attr(function_call, 'name', '')
                 original_args = dict(function_call.args) if hasattr(function_call, 'args') and function_call.args else {}
-                
+
                 # Check if tool name is valid
                 if original_name and original_name not in get_valid_tools():
                     agent_log.warning(f"⚠️ DETECTED INVALID TOOL: '{original_name[:100]}...'")
-                    
+
                     # Try to extract from JSON first (preserves args)
                     extracted_name, extracted_args = extract_tool_call_from_json(original_name)
-                    
+
                     if extracted_name and extracted_name in get_valid_tools():
                         corrected_name = extracted_name
                         corrected_args = extracted_args
@@ -856,13 +866,13 @@ def after_model_callback(
                         # Fall back to heuristic/LLM correction via agent_kit
                         corrected_name = correct_hallucination(original_name)
                         corrected_args = original_args
-                        
+
                         if corrected_name == original_name or corrected_name not in get_valid_tools():
                             agent_log.error(f"❌ Could not correct hallucinated tool: '{original_name[:50]}...'")
                             continue
-                        
+
                         agent_log.info(f"✅ CORRECTED via agent_kit: '{original_name[:50]}...' -> '{corrected_name}'")
-                    
+
                     # Store correction info for later
                     corrections_needed.append({
                         'part_idx': idx,
@@ -870,15 +880,15 @@ def after_model_callback(
                         'corrected_args': corrected_args,
                         'original_id': getattr(function_call, 'id', None),
                     })
-        
+
         # Apply corrections by creating NEW FunctionCall objects (immutable-safe)
         if corrections_needed:
             from google.genai import types as genai_types
-            
+
             new_parts = []
             corrections_applied = 0
             correction_map = {c['part_idx']: c for c in corrections_needed}
-            
+
             for idx, part in enumerate(parts):
                 if idx in correction_map:
                     # Create NEW FunctionCall with corrected name
@@ -909,7 +919,7 @@ def after_model_callback(
                         new_parts.append(part)  # Keep original on error
                 else:
                     new_parts.append(part)
-            
+
             # Rebuild Content with corrected parts
             if corrections_applied > 0:
                 try:
@@ -925,13 +935,13 @@ def after_model_callback(
     try:
         emoji = get_emoji(agent_name)
         session = ScanSession.get_current()
-        
+
         # Ensure header is written (fallback)
         if session and not model_tracker.is_header_written(agent_name):
             model_info = model_tracker.get(agent_name)
             session.log_agent_start_with_model(agent_name, model_info)
             model_tracker.mark_header_written(agent_name)
-        
+
         # Log token usage
         try:
             usage = _safe_get_attr(llm_response, 'usage_metadata')
@@ -940,33 +950,33 @@ def after_model_callback(
                 response_tokens = _safe_get_attr(usage, 'candidates_token_count', 0) or 0
                 total_tokens = _safe_get_attr(usage, 'total_token_count', 0) or 0
                 agent_log.debug(f"📊 Token Usage | Prompt: {prompt_tokens} | Response: {response_tokens} | Total: {total_tokens}")
-                
+
                 if session:
                     session.track_token_usage(prompt_tokens, response_tokens, total_tokens)
         except Exception:
             pass
-        
+
         # Extract and log parts
         parts = extract_parts_safe(llm_response)
-        
+
         for part in parts:
             try:
                 log_part_safe(part, agent_log, emoji, session, agent_name)
             except Exception as e:
                 _debug_log(agent_log, f"Error logging part: {e}")
-    
+
     except Exception as e:
         try:
             logger.bind(author="system").error(f"Error in after_model_callback: {e}")
         except Exception:
             pass
-    
+
     # Clean up agent context
     try:
         from agent_kit.hallucination import clear_agent_context
         clear_agent_context()
     except Exception:
         pass
-    
+
     return llm_response
 

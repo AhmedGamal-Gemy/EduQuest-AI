@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional
+
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin
 from fastapi_users.authentication import (
@@ -7,11 +7,13 @@ from fastapi_users.authentication import (
     BearerTransport,
     JWTStrategy,
 )
-from fastapi_users.jwt import generate_jwt
 from fastapi_users.db import BeanieUserDatabase
-from app.db.models import User
+from fastapi_users.jwt import generate_jwt
+
 from app.core.config import settings
+from app.db.models import User
 from edu_quester.shared.logger import logger
+
 
 async def get_user_db():
     yield BeanieUserDatabase(User, uuid.UUID)
@@ -20,16 +22,16 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     reset_password_token_secret = settings.SECRET_KEY
     verification_token_secret = settings.SECRET_KEY
 
-    async def on_after_register(self, user: User, request: Optional[Request] = None):
+    async def on_after_register(self, user: User, request: Request | None = None):
         logger.bind(author="auth").info(f"User registered: {user.id}")
 
     async def on_after_forgot_password(
-        self, user: User, token: str, request: Optional[Request] = None
+        self, user: User, token: str, request: Request | None = None
     ):
         logger.bind(author="auth").info(f"User {user.id} forgot password. Token generated.")
 
     async def on_after_request_verify(
-        self, user: User, token: str, request: Optional[Request] = None
+        self, user: User, token: str, request: Request | None = None
     ):
         logger.bind(author="auth").info(f"User {user.id} requested verification.")
 
@@ -52,7 +54,7 @@ class CustomJWTStrategy(JWTStrategy):
 
 def get_jwt_strategy() -> JWTStrategy:
     return CustomJWTStrategy(
-        secret=settings.SECRET_KEY, 
+        secret=settings.SECRET_KEY,
         lifetime_seconds=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         algorithm=settings.ALGORITHM
     )

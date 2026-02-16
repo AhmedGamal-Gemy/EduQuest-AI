@@ -21,7 +21,7 @@ test:
 	$(UV) run pytest -v -s
 
 run:
-	$(UV) run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+	$(UV) run uvicorn app.main:app --reload --host 0.0.0.0 --port 8001
 
 # Note: 'clean' might fail on native Windows CMD without find/rm utilities. 
 # Recommended to use WSL or Git Bash on Windows.
